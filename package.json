@@ -1,0 +1,44 @@
+{
+  "name": "wpd-qa",
+  "version": "0.1.0",
+  "description": "Wheat Pest & Disease Question Answering System",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "pnpm run build:frontend && pnpm run build:admin && pnpm run build:backend",
+    "build:frontend": "pnpm --filter @wpd/frontend run build",
+    "build:admin": "pnpm --filter @wpd/admin run build",
+    "build:backend": "pnpm --filter @wpd/backend run build",
+    "dev:frontend": "pnpm --filter @wpd/frontend run dev",
+    "dev:admin": "pnpm --filter @wpd/admin run dev",
+    "dev:backend": "pnpm --filter @wpd/backend run dev",
+    "start:backend": "pnpm --filter @wpd/backend run start",
+    "db:generate": "pnpm --filter @wpd/db run generate",
+    "db:migrate": "pnpm --filter @wpd/db run migrate",
+    "db:studio": "pnpm --filter @wpd/db run studio",
+    "lint": "eslint . --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "wheat",
+    "disease",
+    "QA",
+    "AI",
+    "RAG"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "prettier": "^3.2.4",
+    "typescript": "^5.3.3"
+  }
+}

@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           BigInt            @id @default(autoincrement())
+  email        String          @unique @db.VarChar(100)
+  passwordHash String          @db.VarChar(255)
+  nickname     String?         @db.VarChar(50)
+  avatar       String?         @db.VarChar(255)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  isDeleted    Boolean       @default(false)
+
+  conversations Conversation[]
+  quizRecords   QuizRecord[]
+  statistics    UserStatistics?
+  uploadedDocuments KnowledgeDocument[]
+}
+
+model Admin {
+  id           BigInt   @id @default(autoincrement())
+  username     String   @unique @db.VarChar(50)
+  passwordHash String   @db.VarChar(255)
+  role         String   @default("admin") @db.VarChar(20)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  isDeleted    Boolean  @default(false)
+}
+
+model Conversation {
+  id        BigInt      @id @default(autoincrement())
+  userId    BigInt
+  title     String?     @db.VarChar(255)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  isDeleted Boolean     @default(false)
+
+  user     User      @relation(fields: [userId], references: [id])
+  messages Message[]
+}
+
+model Message {
+  id             BigInt       @id @default(autoincrement())
+  conversationId BigInt
+  role           String       @db.VarChar(20)
+  content        String       @db.Text
+  promptTokens   Int          @default(0)
+  completionTokens Int         @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  isDeleted      Boolean      @default(false)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+}
+
+model PestCategory {
+  id          BigInt   @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  questions  Question[]
+  documents KnowledgeDocument[]
+}
+
+model Question {
+  id            BigInt       @id @default(autoincrement())
+  title         String     @db.Text
+  options       Json
+  answer        String     @db.VarChar(10)
+  analysis      String?    @db.Text
+  difficulty    Int        @default(1)
+  categoryId    BigInt?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  isDeleted     Boolean   @default(false)
+
+  category     PestCategory? @relation(fields: [categoryId], references: [id])
+  quizRecords QuizRecord[]
+}
+
+model QuizRecord {
+  id         BigInt   @id @default(autoincrement())
+  userId     BigInt
+  questionId BigInt
+  userAnswer String   @db.VarChar(10)
+  isCorrect  Boolean
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  isDeleted  Boolean  @default(false)
+
+  user     User     @relation(fields: [userId], references: [id])
+  question Question @relation(fields: [questionId], references: [id])
+}
+
+model KnowledgeDocument {
+  id            BigInt               @id @default(autoincrement())
+  title         String             @db.VarChar(255)
+  source        String?            @db.VarChar(255)
+  categoryId    BigInt?
+  fileName      String?            @db.VarChar(255)
+  fileType      String?            @db.VarChar(50)
+  fileSize      BigInt?
+  uploadUserId  BigInt?
+  content       String?            @db.Text
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  isDeleted     Boolean            @default(false)
+
+  category  PestCategory? @relation(fields: [categoryId], references: [id])
+  uploadUser User?         @relation(fields: [uploadUserId], references: [id])
+  chunks    KnowledgeChunk[]
+}
+
+model KnowledgeChunk {
+  id         BigInt               @id @default(autoincrement())
+  documentId BigInt
+  chunkIndex Int
+  title      String?            @db.VarChar(255)
+  content    String             @db.Text
+  embedding  String?            @db.Text
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  isDeleted  Boolean            @default(false)
+
+  document KnowledgeDocument @relation(fields: [documentId], references: [id])
+}
+
+model UserStatistics {
+  id           BigInt   @id @default(autoincrement())
+  userId       BigInt   @unique
+  chatCount    Int      @default(0)
+  quizCount    Int      @default(0)
+  correctCount Int      @default(0)
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}

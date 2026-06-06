@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: ankane/pgvector:latest
+    container_name: wpd-postgres
+    environment:
+      POSTGRES_DB: wpd_qa
+      POSTGRES_USER: wpd_user
+      POSTGRES_PASSWORD: wpd_password_123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wpd_user -d wpd_qa"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:latest
+    container_name: wpd-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    container_name: wpd-backend
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://wpd_user:wpd_password_123@postgres:5432/wpd_qa
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=your-jwt-secret-key-change-this-in-production
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    container_name: wpd-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  admin:
+    build:
+      context: .
+      dockerfile: docker/admin.Dockerfile
+    container_name: wpd-admin
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
