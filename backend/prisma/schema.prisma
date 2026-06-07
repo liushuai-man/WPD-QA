@@ -23,6 +23,10 @@ model User {
   updatedAt    DateTime @updatedAt @map("updated_at")
   isDeleted    Boolean  @default(false) @map("is_deleted")
 
+  conversations  Conversation[]
+  quizRecords    QuizRecord[]
+  statistics     UserStatistics?
+
   @@map("users")
 }
 
@@ -80,7 +84,7 @@ model Message {
 // 病虫害分类表
 model PestCategory {
   id          BigInt   @id @default(autoincrement())
-  name        String   @db.VarChar(100)
+  name        String   @unique @db.VarChar(100)
   description String?  @db.Text
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
