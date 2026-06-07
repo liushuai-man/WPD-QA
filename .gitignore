@@ -14,3 +14,10 @@ yarn-error.log*
 *~
 prisma/migrations
 packages/db/prisma/migrations
+
+/frontend/node_modules
+/frontend/.next
+/admin/node_modules
+/admin/.next
+/backend/node_modules
+/backend/.next
