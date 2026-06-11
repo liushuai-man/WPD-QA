@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { MantineProvider } from '@mantine/core';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -13,7 +14,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN">
-      <body>{children}</body>
+      <body>
+        <MantineProvider
+          defaultColorScheme="light"
+          theme={{
+            primaryColor: 'blue',
+            fontFamily:
+              'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+          }}
+        >
+          {children}
+        </MantineProvider>
+      </body>
     </html>
   );
 }

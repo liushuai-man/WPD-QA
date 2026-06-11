@@ -1,2 +1,2 @@
-// 聊天模块
-export {};
+export * from './chat.controller';
+export * from './chat.service';

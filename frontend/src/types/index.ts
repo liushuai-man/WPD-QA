@@ -1,3 +1,4 @@
+
 // 类型定义
 export interface User {
   id: string;
@@ -19,4 +20,10 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   createdAt: string;
+}
+
+export interface ApiResponse<T = unknown> {
+  code: number;
+  data?: T;
+  message: string;
 }

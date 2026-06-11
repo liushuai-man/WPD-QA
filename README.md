@@ -189,11 +189,11 @@ pnpm db:studio
 
 ### 访问地址
 
-| 服务         | 地址                           |
-| ------------ | ------------------------------ |
-| 移动端应用   | http://localhost:3000          |
-| 管理后台     | http://localhost:3001          |
-| API文档      | http://localhost:4000/api/docs |
+| 服务       | 地址                           |
+| ---------- | ------------------------------ |
+| 移动端应用 | http://localhost:3000          |
+| 管理后台   | http://localhost:3001          |
+| API文档    | http://localhost:4000/api/docs |
 
 ---
 
