@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/index';
 import chatRoutes from './routes/chat';
+import adminRoutes from './routes/admin';
 import { getRedisClient, closeRedis } from './utils/redis';
 
 // 加载环境变量
@@ -35,8 +36,9 @@ app.get('/health', (_req: Request, res: Response) => {
 
 // API 路由
 app.use('/api/auth', authRoutes);
-app.use(userRoutes);
-app.use(chatRoutes);
+app.use('/api', userRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/admin', adminRoutes);
 
 // 404 处理
 app.use((_req: Request, res: Response) => {
@@ -54,10 +56,13 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 // 启动服务
 const startServer = async () => {
   try {
-    // 初始化 Redis 连接
+    // 初始化 Redis 连接（不阻塞主服务启动）
     console.log('🔄 Initializing Redis connection...');
-    await getRedisClient();
-    console.log('✅ Redis initialized successfully');
+    getRedisClient().then(() => {
+      console.log('✅ Redis initialized successfully');
+    }).catch((error) => {
+      console.warn('⚠️  Redis connection failed, proceeding without cache:', error.message);
+    });
 
     // 启动 HTTP 服务器
     app.listen(PORT, () => {
