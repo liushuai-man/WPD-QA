@@ -15,7 +15,7 @@ import {
 } from '@mantine/core';
 import { Mail, User, Lock, ArrowRight } from 'lucide-react';
 import { authApi } from '@/api/auth';
-import { useAuthStore } from '@/store';
+import { useAuthStore } from '@/store/useUserStore';
 import {
   validateEmail,
   validateCode,

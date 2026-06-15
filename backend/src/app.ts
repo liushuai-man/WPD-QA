@@ -5,6 +5,8 @@ import compression from 'compression';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
+import userRoutes from './routes/index';
+import chatRoutes from './routes/chat';
 import { getRedisClient, closeRedis } from './utils/redis';
 
 // 加载环境变量
@@ -33,6 +35,8 @@ app.get('/health', (_req: Request, res: Response) => {
 
 // API 路由
 app.use('/api/auth', authRoutes);
+app.use(userRoutes);
+app.use(chatRoutes);
 
 // 404 处理
 app.use((_req: Request, res: Response) => {

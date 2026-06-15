@@ -14,7 +14,7 @@ import {
 } from '@mantine/core';
 import { Mail, Lock, ArrowRight, Home } from 'lucide-react';
 import { authApi } from '@/api/auth';
-import { useAuthStore } from '@/store';
+import { useAuthStore } from '@/store/useUserStore';
 import { validateEmail, validatePassword } from '@/lib/utils';
 
 interface TurnstileInstance {
