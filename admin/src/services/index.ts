@@ -1,1 +1,8 @@
-export { authApi, userApi, knowledgeApi, questionApi, conversationApi, statisticsApi } from './admin';
+export {
+  authApi,
+  userApi,
+  knowledgeApi,
+  questionApi,
+  conversationApi,
+  statisticsApi,
+} from './admin';

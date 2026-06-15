@@ -2,7 +2,13 @@
 
 import { useState } from 'react';
 import { Layout } from '@/components/layout';
-import { Settings as SettingsIcon, Database, Shield, Server, Save } from 'lucide-react';
+import {
+  Settings as SettingsIcon,
+  Database,
+  Shield,
+  Server,
+  Save,
+} from 'lucide-react';
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState({
@@ -51,34 +57,52 @@ export default function SettingsPage() {
               <SettingsIcon className="w-5 h-5 text-primary" />
               基本设置
             </h3>
-            
+
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-text mb-2">站点名称</label>
+                <label className="block text-sm font-medium text-text mb-2">
+                  站点名称
+                </label>
                 <input
                   type="text"
                   value={settings.siteName}
-                  onChange={(e) => setSettings({ ...settings, siteName: e.target.value })}
+                  onChange={(e) =>
+                    setSettings({ ...settings, siteName: e.target.value })
+                  }
                   className="w-full px-4 py-2 bg-gray-50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text mb-2">API超时时间（毫秒）</label>
+                <label className="block text-sm font-medium text-text mb-2">
+                  API超时时间（毫秒）
+                </label>
                 <input
                   type="number"
                   value={settings.apiTimeout}
-                  onChange={(e) => setSettings({ ...settings, apiTimeout: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      apiTimeout: Number(e.target.value),
+                    })
+                  }
                   className="w-full px-4 py-2 bg-gray-50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text mb-2">每日会话限制（次）</label>
+                <label className="block text-sm font-medium text-text mb-2">
+                  每日会话限制（次）
+                </label>
                 <input
                   type="number"
                   value={settings.dailyChatLimit}
-                  onChange={(e) => setSettings({ ...settings, dailyChatLimit: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      dailyChatLimit: Number(e.target.value),
+                    })
+                  }
                   className="w-full px-4 py-2 bg-gray-50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
               </div>
@@ -90,41 +114,61 @@ export default function SettingsPage() {
               <Database className="w-5 h-5 text-primary" />
               RAG设置
             </h3>
-            
+
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-text">启用RAG检索</label>
+                <label className="text-sm font-medium text-text">
+                  启用RAG检索
+                </label>
                 <button
-                  onClick={() => setSettings({ ...settings, enableRAG: !settings.enableRAG })}
+                  onClick={() =>
+                    setSettings({ ...settings, enableRAG: !settings.enableRAG })
+                  }
                   className={`w-12 h-6 rounded-full transition-colors ${
                     settings.enableRAG ? 'bg-primary' : 'bg-gray-300'
                   }`}
                 >
-                  <span className={`block w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
-                    settings.enableRAG ? 'translate-x-6' : 'translate-x-0.5'
-                  }`} />
+                  <span
+                    className={`block w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
+                      settings.enableRAG ? 'translate-x-6' : 'translate-x-0.5'
+                    }`}
+                  />
                 </button>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text mb-2">RAG命中阈值</label>
+                <label className="block text-sm font-medium text-text mb-2">
+                  RAG命中阈值
+                </label>
                 <input
                   type="number"
                   step="0.01"
                   min="0"
                   max="1"
                   value={settings.ragHitThreshold}
-                  onChange={(e) => setSettings({ ...settings, ragHitThreshold: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      ragHitThreshold: Number(e.target.value),
+                    })
+                  }
                   className="w-full px-4 py-2 bg-gray-50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text mb-2">最大对话历史长度</label>
+                <label className="block text-sm font-medium text-text mb-2">
+                  最大对话历史长度
+                </label>
                 <input
                   type="number"
                   value={settings.maxChatLength}
-                  onChange={(e) => setSettings({ ...settings, maxChatLength: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      maxChatLength: Number(e.target.value),
+                    })
+                  }
                   className="w-full px-4 py-2 bg-gray-50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
               </div>
@@ -137,7 +181,7 @@ export default function SettingsPage() {
             <Server className="w-5 h-5 text-primary" />
             系统状态
           </h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-text-muted mb-1">API服务</p>

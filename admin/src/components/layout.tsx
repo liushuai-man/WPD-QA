@@ -15,11 +15,21 @@ import {
 } from 'lucide-react';
 
 const menuItems = [
-  { id: 'dashboard', label: '仪表盘', icon: LayoutDashboard, path: '/dashboard' },
+  {
+    id: 'dashboard',
+    label: '仪表盘',
+    icon: LayoutDashboard,
+    path: '/dashboard',
+  },
   { id: 'users', label: '用户管理', icon: Users, path: '/users' },
   { id: 'knowledge', label: '知识库', icon: BookOpen, path: '/knowledge' },
   { id: 'questions', label: '题库管理', icon: HelpCircle, path: '/questions' },
-  { id: 'conversations', label: '会话管理', icon: MessageSquare, path: '/conversations' },
+  {
+    id: 'conversations',
+    label: '会话管理',
+    icon: MessageSquare,
+    path: '/conversations',
+  },
   { id: 'settings', label: '系统设置', icon: Settings, path: '/settings' },
 ];
 
@@ -53,7 +63,7 @@ export function Sidebar() {
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.path;
-            
+
             return (
               <li key={item.id}>
                 <button
@@ -88,7 +98,7 @@ export function Sidebar() {
 
 export function Header() {
   const { admin } = useAdminAuthStore();
-  
+
   return (
     <header className="h-16 bg-surface border-b border-border flex items-center justify-between px-6 sticky top-0 z-40">
       <div className="flex items-center gap-4">
@@ -97,7 +107,9 @@ export function Header() {
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center">
-            <span className="text-primary font-semibold">{admin?.username?.charAt(0).toUpperCase()}</span>
+            <span className="text-primary font-semibold">
+              {admin?.username?.charAt(0).toUpperCase()}
+            </span>
           </div>
           <div>
             <p className="text-sm font-medium text-text">{admin?.username}</p>
@@ -128,9 +140,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <Sidebar />
       <div className="ml-64">
         <Header />
-        <main className="p-6">
-          {children}
-        </main>
+        <main className="p-6">{children}</main>
       </div>
     </div>
   );

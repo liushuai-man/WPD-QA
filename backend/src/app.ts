@@ -58,11 +58,16 @@ const startServer = async () => {
   try {
     // 初始化 Redis 连接（不阻塞主服务启动）
     console.log('🔄 Initializing Redis connection...');
-    getRedisClient().then(() => {
-      console.log('✅ Redis initialized successfully');
-    }).catch((error) => {
-      console.warn('⚠️  Redis connection failed, proceeding without cache:', error.message);
-    });
+    getRedisClient()
+      .then(() => {
+        console.log('✅ Redis initialized successfully');
+      })
+      .catch((error) => {
+        console.warn(
+          '⚠️  Redis connection failed, proceeding without cache:',
+          error.message
+        );
+      });
 
     // 启动 HTTP 服务器
     app.listen(PORT, () => {

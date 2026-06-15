@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
-import { adminAuthMiddleware, handleAdminLogin } from '../../middlewares/adminAuth';
+import {
+  adminAuthMiddleware,
+  handleAdminLogin,
+} from '../../middlewares/adminAuth';
 import {
   getUsers,
   deleteUser,
@@ -73,7 +76,12 @@ export const handleCreateKnowledge = async (req: Request, res: Response) => {
       return res.status(400).json({ code: 400, message: '标题不能为空' });
     }
 
-    const result = await createKnowledge({ title, source, content, categoryId });
+    const result = await createKnowledge({
+      title,
+      source,
+      content,
+      categoryId,
+    });
     res.json({ code: 200, message: '创建成功', data: result });
   } catch (error) {
     console.error('Create knowledge error:', error);
@@ -114,13 +122,23 @@ export const handleGetQuestions = async (req: Request, res: Response) => {
 
 export const handleCreateQuestion = async (req: Request, res: Response) => {
   try {
-    const { title, options, answer, analysis, difficulty, categoryId } = req.body;
+    const { title, options, answer, analysis, difficulty, categoryId } =
+      req.body;
 
     if (!title || !options || !answer) {
-      return res.status(400).json({ code: 400, message: '题目、选项和答案不能为空' });
+      return res
+        .status(400)
+        .json({ code: 400, message: '题目、选项和答案不能为空' });
     }
 
-    const result = await createQuestion({ title, options, answer, analysis, difficulty, categoryId });
+    const result = await createQuestion({
+      title,
+      options,
+      answer,
+      analysis,
+      difficulty,
+      categoryId,
+    });
     res.json({ code: 200, message: '创建成功', data: result });
   } catch (error) {
     console.error('Create question error:', error);
@@ -135,8 +153,16 @@ export const handleUpdateQuestion = async (req: Request, res: Response) => {
       return res.status(400).json({ code: 400, message: '无效的题目ID' });
     }
 
-    const { title, options, answer, analysis, difficulty, categoryId } = req.body;
-    const result = await updateQuestion(id, { title, options, answer, analysis, difficulty, categoryId });
+    const { title, options, answer, analysis, difficulty, categoryId } =
+      req.body;
+    const result = await updateQuestion(id, {
+      title,
+      options,
+      answer,
+      analysis,
+      difficulty,
+      categoryId,
+    });
     res.json({ code: 200, message: '更新成功', data: result });
   } catch (error) {
     console.error('Update question error:', error);

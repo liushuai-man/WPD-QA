@@ -1,227 +1,144 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import {
-  Button,
   Card,
-  TextInput,
   Box,
   Title,
-  Avatar,
-  Alert,
+  Text,
+  Button,
+  Container,
+  TextInput,
 } from '@mantine/core';
-import {
-  Send,
-  User,
-  Bot,
-  ArrowLeft,
-  Loader2,
-  MessageCircle,
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store';
-import request from '@/utils/request';
+import { Send, Mic, Image, Bot, User, Clock } from 'lucide-react';
 
-interface Message {
-  id: string;
-  content: string;
-  role: 'user' | 'assistant';
-  timestamp: Date;
-}
+const mockMessages = [
+  {
+    id: 1,
+    type: 'bot',
+    content: '您好！我是小麦病虫害智能助手。请问有什么可以帮助您的吗？',
+    time: '刚刚',
+  },
+  {
+    id: 2,
+    type: 'user',
+    content: '小麦叶发黄是什么原因？',
+    time: '刚刚',
+  },
+  {
+    id: 3,
+    type: 'bot',
+    content:
+      '小麦叶发黄可能由多种原因引起，主要包括：\n\n1. 营养缺乏：\n   - 缺氮：叶片均匀发黄，从老叶开始\n   - 缺镁：叶脉间发黄，叶脉仍绿\n   - 缺铁：新叶发黄，叶脉绿色\n\n2. 病害（如纹枯病）：\n   - 叶片出现黄色病斑\n   - 后期可能干枯\n\n3. 环境因素：\n   - 干旱或涝害\n   - 温度不适\n\n建议您观察具体症状，以便更准确判断。',
+    time: '刚刚',
+  },
+];
 
 export default function ChatPage() {
-  const router = useRouter();
-  const user = useAuthStore((state) => state.user);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      content: '您好！我是小麦病虫害智能助手，请问有什么可以帮助您的？',
-      role: 'assistant',
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState(mockMessages);
   const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!user) {
-      router.push('/login');
-    }
-  }, [user, router]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const handleSendMessage = async () => {
+  const handleSend = () => {
     if (!inputValue.trim()) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: inputValue.trim(),
-      role: 'user',
-      timestamp: new Date(),
+    const newMessage = {
+      id: messages.length + 1,
+      type: 'user',
+      content: inputValue,
+      time: '刚刚',
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages([...messages, newMessage]);
     setInputValue('');
-    setError('');
-    setIsLoading(true);
-
-    try {
-      const response = await request.post('/api/chat', {
-        message: inputValue.trim(),
-        userId: user?.id,
-      });
-
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: response.data?.response || response.message || '抱歉，我无法回答这个问题。',
-        role: 'assistant',
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (err: any) {
-      setError(err.message || '发送消息失败，请稍后重试');
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: '抱歉，服务器暂时无法响应，请稍后再试。',
-        role: 'assistant',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
   };
 
   return (
-    <Box className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-100">
-      <Card className="h-screen flex flex-col shadow-none border-none rounded-none">
-        <Box className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
-          <div className="flex items-center gap-3">
-            <Button
-              type="button"
-              onClick={() => router.push('/')}
-              variant="outline"
-              size="sm"
-              leftSection={<ArrowLeft className="w-4 h-4" />}
-            >
-              返回
-            </Button>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                <MessageCircle className="w-5 h-5 text-orange-600" />
-              </div>
-              <div>
-                <Title order={4} className="text-gray-800">智能问答</Title>
-                <p className="text-xs text-gray-500">小麦病虫害诊断助手</p>
-              </div>
-            </div>
-          </div>
-          <Avatar
-            size="md"
-            src={user?.avatar || undefined}
-            icon={<User className="w-5 h-5" />}
-          />
-        </Box>
+    <Box className="min-h-screen bg-gray-50 pb-24">
+      <Box className="bg-gradient-to-r from-green-500 to-green-600 px-4 pt-10 pb-4">
+        <Title
+          order={3}
+          className="text-white text-center text-lg font-semibold"
+        >
+          AI问答
+        </Title>
+      </Box>
 
-        {error && (
-          <Alert color="red" variant="light" className="m-4" title="提示">
-            {error}
-          </Alert>
-        )}
-
-        <Box className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+      <Container className="max-w-md mx-auto px-4 py-3">
+        <div className="space-y-3">
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex gap-3 ${
-                message.role === 'user' ? 'justify-end' : 'justify-start'
-              }`}
+              className={`flex gap-2.5 ${message.type === 'user' ? 'flex-row-reverse' : ''}`}
             >
-              <Avatar
-                size="sm"
-                icon={
-                  message.role === 'user' ? (
-                    <User className="w-4 h-4" />
-                  ) : (
-                    <Bot className="w-4 h-4" />
-                  )
-                }
-                className={
-                  message.role === 'user'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-orange-100 text-orange-600'
-                }
-              />
               <div
-                className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-3 rounded-2xl ${
-                  message.role === 'user'
-                    ? 'bg-blue-500 text-white rounded-tr-sm'
-                    : 'bg-white text-gray-800 rounded-tl-sm shadow-sm'
+                className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  message.type === 'user'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-gray-200 text-gray-600'
                 }`}
               >
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                <p
-                  className={`text-xs mt-1 ${
-                    message.role === 'user' ? 'text-blue-200' : 'text-gray-400'
+                {message.type === 'user' ? (
+                  <User className="w-3.5 h-3.5" />
+                ) : (
+                  <Bot className="w-3.5 h-3.5" />
+                )}
+              </div>
+              <div
+                className={`max-w-[75%] ${
+                  message.type === 'user' ? 'text-right' : 'text-left'
+                }`}
+              >
+                <Card
+                  className={`p-3 ${
+                    message.type === 'user'
+                      ? 'bg-green-500 text-white'
+                      : 'bg-white border border-gray-100'
                   }`}
+                  radius="md"
+                  shadow="sm"
                 >
-                  {message.timestamp.toLocaleTimeString('zh-CN', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </p>
+                  <Text
+                    className={`text-sm whitespace-pre-wrap leading-relaxed ${
+                      message.type === 'user' ? 'text-white' : 'text-gray-700'
+                    }`}
+                  >
+                    {message.content}
+                  </Text>
+                </Card>
+                <Text className="text-xs text-gray-400 mt-1 flex items-center gap-1 justify-end">
+                  <Clock className="w-3 h-3" />
+                  {message.time}
+                </Text>
               </div>
             </div>
           ))}
-          <div ref={messagesEndRef} />
-        </Box>
+        </div>
+      </Container>
 
-        <Box className="p-4 border-t border-gray-200 bg-white">
-          <div className="flex gap-3">
+      <Box className="fixed bottom-16 left-0 right-0 bg-white border-t border-gray-100 px-4 py-2.5">
+        <Container className="max-w-md mx-auto">
+          <div className="flex items-center gap-2.5">
+            <Button variant="ghost" size="icon" radius="md">
+              <Image className="w-5 h-5 text-gray-400" />
+            </Button>
             <TextInput
               value={inputValue}
               onChange={(e) => setInputValue(e.currentTarget.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="输入您的问题，例如：小麦叶片发黄怎么办？"
-              radius="xl"
+              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+              placeholder="输入您的问题..."
               className="flex-1"
-              disabled={isLoading}
-              rightSection={
-                <Button
-                  type="button"
-                  onClick={handleSendMessage}
-                  disabled={!inputValue.trim() || isLoading}
-                  radius="xl"
-                  className="h-10 w-10 p-0"
-                  color="orange"
-                >
-                  {isLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Send className="w-4 h-4" />
-                  )}
-                </Button>
-              }
+              size="md"
+              radius="md"
             />
+            <Button variant="ghost" size="icon" radius="md">
+              <Mic className="w-5 h-5 text-gray-400" />
+            </Button>
+            <Button onClick={handleSend} color="green" size="icon" radius="md">
+              <Send className="w-4 h-4" />
+            </Button>
           </div>
-          <p className="text-xs text-gray-400 text-center mt-2">
-            按 Enter 发送，Shift + Enter 换行
-          </p>
-        </Box>
-      </Card>
+        </Container>
+      </Box>
     </Box>
   );
 }

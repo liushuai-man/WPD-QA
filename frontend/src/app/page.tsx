@@ -1,226 +1,145 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  Button,
-  Card,
-  Box,
-  Title,
-  Text,
-  Badge,
-  Container,
-} from '@mantine/core';
+import { Card, Box, Title, Text, Button, Container } from '@mantine/core';
 import {
   MessageCircle,
+  Bug,
   BookOpen,
-  BarChart3,
-  HelpCircle,
+  Camera,
+  Heart,
+  Clock,
   ArrowRight,
   Wheat,
-  Bug,
-  Leaf,
   Shield,
+  Leaf,
+  HelpCircle,
+  FileText,
 } from 'lucide-react';
-import { useAuthStore } from '@/store';
+
+const features = [
+  { id: 'chat', icon: MessageCircle, label: 'AI问答', color: 'bg-green-500' },
+  { id: 'quiz', icon: Bug, label: '知识答题', color: 'bg-blue-500' },
+  { id: 'diagnose', icon: Camera, label: '图片诊断', color: 'bg-orange-500' },
+  { id: 'knowledge', icon: BookOpen, label: '知识库', color: 'bg-purple-500' },
+  { id: 'history', icon: Clock, label: '历史会话', color: 'bg-cyan-500' },
+  { id: 'wrongbook', icon: FileText, label: '错题本', color: 'bg-red-500' },
+  { id: 'farm', icon: Leaf, label: '农技知识', color: 'bg-teal-500' },
+  { id: 'favorites', icon: Heart, label: '我的收藏', color: 'bg-pink-500' },
+];
 
 export default function HomePage() {
   const router = useRouter();
-  const user = useAuthStore((state) => state.user);
-  const [isLoggedIn, setIsLoggedIn] = useState(!!user);
 
-  const features = [
-    {
-      icon: Wheat,
-      title: '智能问答',
-      description: '基于AI的小麦病虫害智能问答系统，快速解答您的疑问',
-      color: 'orange',
-    },
-    {
-      icon: Bug,
-      title: '病虫害识别',
-      description: '提供病虫害识别功能，帮助您快速诊断作物问题',
-      color: 'red',
-    },
-    {
-      icon: Leaf,
-      title: '知识库',
-      description: '丰富的农业知识库，涵盖小麦种植的各个方面',
-      color: 'green',
-    },
-    {
-      icon: BarChart3,
-      title: '学习测验',
-      description: '交互式学习测验，检验您的知识掌握程度',
-      color: 'blue',
-    },
-  ];
+  const handleFeatureClick = (id: string) => {
+    if (id === 'chat') router.push('/chat');
+    else if (id === 'knowledge') router.push('/knowledge');
+    else if (id === 'quiz') router.push('/quiz');
+    else if (id === 'diagnose') router.push('/diagnose');
+    else if (id === 'history') router.push('/history');
+    else if (id === 'wrongbook') router.push('/wrongbook');
+  };
 
   return (
-    <Box className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
-      <Container className="max-w-6xl" py="xl">
-        <Box className="text-center mb-12 pt-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-orange-100 rounded-full mb-6">
-            <Wheat className="w-10 h-10 text-orange-600" />
+    <Box className="min-h-screen bg-gradient-to-b from-sky-100 via-gray-50 to-white pb-20">
+      <Box className="px-4 pt-10 pb-8">
+        <Box className="flex items-center justify-between mb-6">
+          <Box className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
+              <Wheat className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <Title order={3} className="text-gray-800 font-bold text-lg">
+                麦医生
+              </Title>
+              <Text className="text-gray-500 text-xs">
+                小麦病虫害智能问答系统
+              </Text>
+            </div>
+          </Box>
+          <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm">
+            <Shield className="w-4.5 h-4.5 text-gray-500" />
           </div>
-          <Title order={1} className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-            小麦病虫害智能问答平台
-          </Title>
-          <Text className="text-lg text-gray-600 max-w-2xl mx-auto">
-            专业的小麦病虫害诊断与学习平台，助力农业生产智能化
-          </Text>
-          <Badge color="orange" variant="light" className="mt-4">
-            农业智能助手
-          </Badge>
-        </Box>
-
-        <Box className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          {features.map((feature) => (
-            <Card
-              key={feature.title}
-              shadow="sm"
-              radius="xl"
-              p="lg"
-              className="hover:shadow-md transition-shadow duration-300 cursor-pointer"
-              onClick={() => {
-                if (!isLoggedIn) {
-                  router.push('/login');
-                  return;
-                }
-                if (feature.title === '智能问答') {
-                  router.push('/chat');
-                } else if (feature.title === '学习测验') {
-                  router.push('/quiz');
-                }
-              }}
-            >
-              <Box className="flex items-start gap-4">
-                <div
-                  className={`w-12 h-12 rounded-xl flex items-center justify-center`}
-                  style={{
-                    backgroundColor: `${feature.color === 'orange' ? '#fef3c7' :
-                      feature.color === 'red' ? '#fee2e2' :
-                      feature.color === 'green' ? '#dcfce7' : '#dbeafe'}`,
-                  }}
-                >
-                  <feature.icon
-                    className="w-6 h-6"
-                    style={{
-                      color: `${feature.color === 'orange' ? '#ea580c' :
-                        feature.color === 'red' ? '#dc2626' :
-                        feature.color === 'green' ? '#16a34a' : '#2563eb'}`,
-                    }}
-                  />
-                </div>
-                <div>
-                  <Title order={4} className="text-gray-800 mb-1">
-                    {feature.title}
-                  </Title>
-                  <Text className="text-gray-500 text-sm">
-                    {feature.description}
-                  </Text>
-                </div>
-              </Box>
-            </Card>
-          ))}
         </Box>
 
         <Card
-          shadow="lg"
-          radius="xl"
-          p="xl"
-          className="bg-gradient-to-r from-orange-500 to-amber-500 text-white"
+          className="bg-white shadow-md cursor-pointer border border-gray-100"
+          radius="md"
+          p="0"
+          onClick={() => router.push('/chat')}
         >
-          <Box className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="text-center md:text-left">
-              <Title order={2} className="text-white mb-2">
-                开始智能问答之旅
+          <Box className="relative h-32 bg-gradient-to-r from-amber-50 to-green-100 rounded-sm overflow-hidden">
+            <img
+              src="https://images.unsplash.com/photo-1513002749550-c59d786b8e6c?w=400&h=140&fit=crop"
+              alt="小麦"
+              className="w-full h-full object-cover opacity-80"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+            <div className="absolute bottom-4 left-4 right-4">
+              <Title order={4} className="text-white font-bold text-lg">
+                AI智能问答
               </Title>
-              <Text className="text-orange-100">
-                立即体验AI驱动的小麦病虫害诊断服务
+              <Text className="text-white/80 text-xs mt-1">
+                专业解答小麦病虫害问题
               </Text>
             </div>
-            <div className="flex gap-4">
-              {!isLoggedIn ? (
-                <>
-                  <Button
-                    onClick={() => router.push('/login')}
-                    variant="outline"
-                    color="white"
-                    className="bg-transparent border-white text-white hover:bg-white hover:text-orange-500"
-                    leftSection={<MessageCircle className="w-4 h-4" />}
-                  >
-                    登录
-                  </Button>
-                  <Button
-                    onClick={() => router.push('/register')}
-                    variant="filled"
-                    color="white"
-                    className="bg-white text-orange-500 hover:bg-orange-50"
-                    rightSection={<ArrowRight className="w-4 h-4" />}
-                  >
-                    免费注册
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  onClick={() => router.push('/chat')}
-                  variant="filled"
-                  color="white"
-                  className="bg-white text-orange-500 hover:bg-orange-50"
-                  rightSection={<ArrowRight className="w-4 h-4" />}
-                >
-                  进入问答
-                </Button>
-              )}
-            </div>
+          </Box>
+          <Box className="p-4 flex items-center justify-between border-t border-gray-100">
+            <Text className="text-gray-600 text-sm">点击立即咨询</Text>
+            <Button
+              size="sm"
+              color="green"
+              radius="md"
+              rightSection={<ArrowRight className="w-4 h-4" />}
+            >
+              立即咨询
+            </Button>
           </Box>
         </Card>
+      </Box>
 
-        <Box className="mt-12 text-center">
-          <Title order={3} className="text-gray-800 mb-8">
-            平台特点
-          </Title>
-          <Box className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card shadow="none" radius="xl" p="lg" className="text-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-6 h-6 text-blue-600" />
-              </div>
-              <Title order={4} className="text-gray-800 mb-2">
-                数据安全
-              </Title>
-              <Text className="text-gray-500 text-sm">
-                采用先进的加密技术，保障您的数据安全
-              </Text>
-            </Card>
-            <Card shadow="none" radius="xl" p="lg" className="text-center">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Leaf className="w-6 h-6 text-green-600" />
-              </div>
-              <Title order={4} className="text-gray-800 mb-2">
-                专业知识
-              </Title>
-              <Text className="text-gray-500 text-sm">
-                由农业专家提供的专业知识支持
-              </Text>
-            </Card>
-            <Card shadow="none" radius="xl" p="lg" className="text-center">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <HelpCircle className="w-6 h-6 text-purple-600" />
-              </div>
-              <Title order={4} className="text-gray-800 mb-2">
-                贴心服务
-              </Title>
-              <Text className="text-gray-500 text-sm">
-                7x24小时全天候智能问答服务
-              </Text>
-            </Card>
+      <Container className="max-w-md mx-auto px-4 space-y-4">
+        <Card shadow="sm" radius="md" p="4" className="border border-gray-100">
+          <div className="grid grid-cols-4 gap-3">
+            {features.map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <button
+                  key={feature.id}
+                  onClick={() => handleFeatureClick(feature.id)}
+                  className="flex flex-col items-center gap-1.5"
+                >
+                  <div
+                    className={`w-12 h-12 ${feature.color} rounded-xl flex items-center justify-center`}
+                  >
+                    <Icon className="w-5.5 h-5.5 text-white" />
+                  </div>
+                  <Text className="text-xs text-gray-600">{feature.label}</Text>
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+
+        <Card shadow="sm" radius="md" p="4" className="border border-gray-100">
+          <Box className="flex items-center justify-between mb-3">
+            <Title order={4} className="text-gray-800 text-base font-semibold">
+              热门问题
+            </Title>
+            <Button
+              size="xs"
+              variant="link"
+              color="green"
+              className="h-auto px-2"
+            >
+              换一换
+            </Button>
           </Box>
-        </Box>
-
-        <Box className="mt-12 text-center text-gray-400 text-sm">
-          <p>© 2024 小麦病虫害智能问答平台 - 助力农业智能化发展</p>
-        </Box>
+          <div className="flex flex-col items-center justify-center py-8 bg-gray-50 rounded-lg">
+            <HelpCircle className="w-10 h-10 text-gray-300 mb-3" />
+            <Text className="text-gray-400 text-sm">功能开发中，敬请期待</Text>
+          </div>
+        </Card>
       </Container>
     </Box>
   );

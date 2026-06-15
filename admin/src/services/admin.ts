@@ -1,5 +1,13 @@
 import axios from 'axios';
-import type { User, Knowledge, Question, Conversation, Statistics, Pagination, ApiResponse } from '@/types';
+import type {
+  User,
+  Knowledge,
+  Question,
+  Conversation,
+  Statistics,
+  Pagination,
+  ApiResponse,
+} from '@/types';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api',
@@ -33,10 +41,12 @@ api.interceptors.response.use(
 
 export const authApi = {
   login: async (username: string, password: string) => {
-    const response = await api.post<ApiResponse<{ accessToken: string; admin: { id: number; username: string; role: string } }>>(
-      '/admin/login',
-      { username, password }
-    );
+    const response = await api.post<
+      ApiResponse<{
+        accessToken: string;
+        admin: { id: number; username: string; role: string };
+      }>
+    >('/admin/login', { username, password });
     return response.data;
   },
 };
@@ -48,11 +58,13 @@ export const userApi = {
       limit: limit.toString(),
     });
     if (keyword) params.append('keyword', keyword);
-    
-    const response = await api.get<ApiResponse<Pagination<User>>>(`/admin/users?${params.toString()}`);
+
+    const response = await api.get<ApiResponse<Pagination<User>>>(
+      `/admin/users?${params.toString()}`
+    );
     return response.data;
   },
-  
+
   deleteUser: async (id: number) => {
     const response = await api.delete<ApiResponse<null>>(`/admin/users/${id}`);
     return response.data;
@@ -60,42 +72,60 @@ export const userApi = {
 };
 
 export const knowledgeApi = {
-  getKnowledgeList: async (page: number = 1, limit: number = 10, keyword?: string) => {
+  getKnowledgeList: async (
+    page: number = 1,
+    limit: number = 10,
+    keyword?: string
+  ) => {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
     });
     if (keyword) params.append('keyword', keyword);
-    
-    const response = await api.get<ApiResponse<Pagination<Knowledge>>>(`/admin/knowledge?${params.toString()}`);
+
+    const response = await api.get<ApiResponse<Pagination<Knowledge>>>(
+      `/admin/knowledge?${params.toString()}`
+    );
     return response.data;
   },
-  
+
   uploadKnowledge: async (data: FormData) => {
-    const response = await api.post<ApiResponse<Knowledge>>('/admin/knowledge/upload', data, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await api.post<ApiResponse<Knowledge>>(
+      '/admin/knowledge/upload',
+      data,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }
+    );
     return response.data;
   },
-  
+
   deleteKnowledge: async (id: number) => {
-    const response = await api.delete<ApiResponse<null>>(`/admin/knowledge/${id}`);
+    const response = await api.delete<ApiResponse<null>>(
+      `/admin/knowledge/${id}`
+    );
     return response.data;
   },
 };
 
 export const questionApi = {
-  getQuestions: async (page: number = 1, limit: number = 10, keyword?: string) => {
+  getQuestions: async (
+    page: number = 1,
+    limit: number = 10,
+    keyword?: string
+  ) => {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
     });
     if (keyword) params.append('keyword', keyword);
-    
-    const response = await api.get<ApiResponse<Pagination<Question>>>(`/admin/questions?${params.toString()}`);
+
+    const response = await api.get<ApiResponse<Pagination<Question>>>(
+      `/admin/questions?${params.toString()}`
+    );
     return response.data;
   },
-  
+
   createQuestion: async (data: {
     title: string;
     options: Array<{ label: string; content: string }>;
@@ -104,24 +134,35 @@ export const questionApi = {
     difficulty?: number;
     categoryId?: number | null;
   }) => {
-    const response = await api.post<ApiResponse<Question>>('/admin/questions', data);
+    const response = await api.post<ApiResponse<Question>>(
+      '/admin/questions',
+      data
+    );
     return response.data;
   },
-  
-  updateQuestion: async (id: number, data: Partial<{
-    title: string;
-    options: Array<{ label: string; content: string }>;
-    answer: string;
-    analysis?: string;
-    difficulty?: number;
-    categoryId?: number | null;
-  }>) => {
-    const response = await api.put<ApiResponse<Question>>(`/admin/questions/${id}`, data);
+
+  updateQuestion: async (
+    id: number,
+    data: Partial<{
+      title: string;
+      options: Array<{ label: string; content: string }>;
+      answer: string;
+      analysis?: string;
+      difficulty?: number;
+      categoryId?: number | null;
+    }>
+  ) => {
+    const response = await api.put<ApiResponse<Question>>(
+      `/admin/questions/${id}`,
+      data
+    );
     return response.data;
   },
-  
+
   deleteQuestion: async (id: number) => {
-    const response = await api.delete<ApiResponse<null>>(`/admin/questions/${id}`);
+    const response = await api.delete<ApiResponse<null>>(
+      `/admin/questions/${id}`
+    );
     return response.data;
   },
 };
@@ -133,16 +174,19 @@ export const conversationApi = {
     );
     return response.data;
   },
-  
+
   deleteConversation: async (id: number) => {
-    const response = await api.delete<ApiResponse<null>>(`/admin/conversations/${id}`);
+    const response = await api.delete<ApiResponse<null>>(
+      `/admin/conversations/${id}`
+    );
     return response.data;
   },
 };
 
 export const statisticsApi = {
   getStatistics: async () => {
-    const response = await api.get<ApiResponse<Statistics>>('/admin/statistics');
+    const response =
+      await api.get<ApiResponse<Statistics>>('/admin/statistics');
     return response.data;
   },
 };

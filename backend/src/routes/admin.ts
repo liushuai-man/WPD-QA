@@ -1,5 +1,8 @@
 import { Router, type Router as RouterType } from 'express';
-import { adminAuthMiddleware, handleAdminLogin } from '../middlewares/adminAuth';
+import {
+  adminAuthMiddleware,
+  handleAdminLogin,
+} from '../middlewares/adminAuth';
 import {
   handleGetUsers,
   handleDeleteUser,
@@ -40,6 +43,10 @@ router.delete('/questions/:id', adminAuthMiddleware, handleDeleteQuestion);
 
 // Conversation management
 router.get('/conversations', adminAuthMiddleware, handleGetConversations);
-router.delete('/conversations/:id', adminAuthMiddleware, handleDeleteConversation);
+router.delete(
+  '/conversations/:id',
+  adminAuthMiddleware,
+  handleDeleteConversation
+);
 
 export default router;

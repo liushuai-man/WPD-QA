@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 async function createDefaultAdmin() {
   try {
     console.log('🔍 检查是否已存在管理员...');
-    
+
     const existingAdmin = await prisma.admin.findUnique({
       where: { username: 'admin' },
     });
@@ -16,7 +16,7 @@ async function createDefaultAdmin() {
     }
 
     console.log('📝 创建默认管理员...');
-    
+
     // 创建默认管理员（明文密码用于测试，生产环境应使用 bcrypt）
     const admin = await prisma.admin.create({
       data: {

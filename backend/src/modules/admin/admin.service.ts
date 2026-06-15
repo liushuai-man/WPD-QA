@@ -322,9 +322,10 @@ export const updateQuestion = async (
   }>
 ): Promise<QuestionForAdmin> => {
   const updateData: Prisma.QuestionUpdateInput = {};
-  
+
   if (data.title !== undefined) updateData.title = data.title;
-  if (data.options !== undefined) updateData.options = data.options as unknown as Prisma.InputJsonValue;
+  if (data.options !== undefined)
+    updateData.options = data.options as unknown as Prisma.InputJsonValue;
   if (data.answer !== undefined) updateData.answer = data.answer;
   if (data.analysis !== undefined) updateData.analysis = data.analysis;
   if (data.difficulty !== undefined) updateData.difficulty = data.difficulty;
