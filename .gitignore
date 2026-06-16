@@ -22,7 +22,7 @@ packages/db/prisma/migrations
 /backend/node_modules
 /backend/.next
 
-
+.env
 /.env
 /.env.test
 /.env.development
