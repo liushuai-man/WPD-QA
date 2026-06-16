@@ -13,6 +13,7 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "admin:init": "tsx scripts/init-admin.ts",
+    "db:seed": "tsx scripts/seed-questions.ts",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit"
   },

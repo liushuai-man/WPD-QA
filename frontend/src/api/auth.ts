@@ -4,7 +4,7 @@ import type { LoginResponse, RegisterResponse, ProfileResponse } from '@/types/a
 
 export const authApi = {
   sendRegisterCode: async (email: string): Promise<ApiResponse> => {
-    return request.post('/api/auth/send-register-code', { email });
+    return request.post('/auth/send-register-code', { email });
   },
 
   register: async (
@@ -13,7 +13,7 @@ export const authApi = {
     nickname: string,
     password: string
   ): Promise<ApiResponse<RegisterResponse>> => {
-    return request.post('/api/auth/register', {
+    return request.post('/auth/register', {
       email,
       code,
       nickname,
@@ -22,11 +22,11 @@ export const authApi = {
   },
 
   sendLoginCode: async (email: string): Promise<ApiResponse> => {
-    return request.post('/api/auth/send-login-code', { email });
+    return request.post('/auth/send-login-code', { email });
   },
 
   login: async (email: string, code: string): Promise<ApiResponse<LoginResponse>> => {
-    return request.post('/api/auth/login', { email, code });
+    return request.post('/auth/login', { email, code });
   },
 
   loginWithPassword: async (
@@ -34,7 +34,7 @@ export const authApi = {
     password: string,
     turnstileToken: string
   ): Promise<ApiResponse<LoginResponse>> => {
-    return request.post('/api/auth/login-password', {
+    return request.post('/auth/login-password', {
       email,
       password,
       turnstileToken,
@@ -42,7 +42,7 @@ export const authApi = {
   },
 
   sendResetCode: async (email: string): Promise<ApiResponse> => {
-    return request.post('/api/auth/send-reset-code', { email });
+    return request.post('/auth/send-reset-code', { email });
   },
 
   resetPassword: async (
@@ -50,7 +50,7 @@ export const authApi = {
     code: string,
     password: string
   ): Promise<ApiResponse> => {
-    return request.post('/api/auth/reset-password', {
+    return request.post('/auth/reset-password', {
       email,
       code,
       password,
@@ -58,6 +58,6 @@ export const authApi = {
   },
 
   getProfile: async (): Promise<ApiResponse<ProfileResponse>> => {
-    return request.get('/api/auth/profile');
+    return request.get('/auth/profile');
   },
 };

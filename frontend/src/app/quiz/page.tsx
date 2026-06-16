@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Card,
   Box,
@@ -11,61 +12,239 @@ import {
   Badge,
   Progress,
 } from '@mantine/core';
-import { ArrowRight, CheckCircle, XCircle, Clock } from 'lucide-react';
+import {
+  ArrowRight,
+  CheckCircle,
+  XCircle,
+  Clock,
+  HelpCircle,
+  Home,
+  Trophy,
+} from 'lucide-react';
+import { quizApi } from '@/services';
+import type { Question, QuizRecord } from '@/types/index';
 
-const question = {
-  id: 1,
-  question: '小麦赤霉病主要危害小麦的哪个部位？',
-  options: [
-    { label: 'A', text: '根部' },
-    { label: 'B', text: '茎部' },
-    { label: 'C', text: '叶片' },
-    { label: 'D', text: '穗部' },
-  ],
-  answer: 'D',
-  analysis:
-    '正确答案是D。小麦赤霉病主要危害小麦的穗部，导致穗腐。发病初期，在小穗和颖片上出现水渍状淡褐色病斑，后期产生粉红色霉层。赤霉病不仅影响产量，还会产生毒素，影响小麦品质。',
-};
+interface QuizQuestion extends Question {
+  options: { label: string; content: string }[];
+}
 
 export default function QuizPage() {
+  const router = useRouter();
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [wrongAnswers, setWrongAnswers] = useState<QuizRecord[]>([]);
+  const [isFinished, setIsFinished] = useState(false);
+
+  useEffect(() => {
+    fetchQuestions();
+  }, []);
+
+  const fetchQuestions = async () => {
+    setLoading(true);
+    try {
+      const response = await quizApi.getQuestions(1, 10);
+      if (response.code === 200 && response.data) {
+        setQuestions(response.data.list);
+      }
+    } catch (err) {
+      console.error('获取题目失败:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSelect = (label: string) => {
     if (showResult) return;
     setSelectedOption(label);
   };
 
-  const handleSubmit = () => {
-    if (!selectedOption) return;
+  const handleSubmit = async () => {
+    if (!selectedOption || !questions[currentIndex]) return;
+
     setShowResult(true);
-    if (selectedOption === question.answer) {
+
+    const currentQuestion = questions[currentIndex];
+    const isCorrect = selectedOption === currentQuestion.answer;
+
+    if (isCorrect) {
       setScore(score + 1);
+    } else {
+      setWrongAnswers([
+        ...wrongAnswers,
+        {
+          questionId: Number(currentQuestion.id),
+          userAnswer: selectedOption,
+          isCorrect: false,
+        } as QuizRecord,
+      ]);
+    }
+
+    try {
+      await quizApi.submitAnswer(Number(currentQuestion.id), selectedOption);
+    } catch (err) {
+      console.error('提交答案失败:', err);
     }
   };
 
   const handleNext = () => {
+    if (currentIndex >= questions.length - 1) {
+      setIsFinished(true);
+      return;
+    }
     setSelectedOption(null);
     setShowResult(false);
     setCurrentIndex(currentIndex + 1);
   };
 
+  const handleBackToHome = () => {
+    router.push('/');
+  };
+
+  if (loading) {
+    return (
+      <Box className="min-h-screen bg-gradient-to-b from-sky-100 via-gray-50 to-white flex items-center justify-center">
+        <Text className="text-gray-500">加载中...</Text>
+      </Box>
+    );
+  }
+
+  if (questions.length === 0) {
+    return (
+      <Box className="min-h-screen bg-gradient-to-b from-sky-100 via-gray-50 to-white pb-20">
+        <Box className="px-4 pt-10 pb-4">
+          <Title
+            order={3}
+            className="text-gray-800 text-center text-lg font-semibold"
+          >
+            答题练习
+          </Title>
+        </Box>
+        <Container className="max-w-md mx-auto px-4 py-3">
+          <Card
+            shadow="sm"
+            radius="md"
+            p="4"
+            className="border border-gray-100"
+          >
+            <div className="flex flex-col items-center justify-center py-8">
+              <HelpCircle className="w-10 h-10 text-gray-300 mb-3" />
+              <Text className="text-gray-400 text-sm">暂无题目数据</Text>
+            </div>
+          </Card>
+        </Container>
+      </Box>
+    );
+  }
+
+  if (isFinished) {
+    const accuracy =
+      questions.length > 0 ? Math.round((score / questions.length) * 100) : 0;
+    return (
+      <Box className="min-h-screen bg-gradient-to-b from-sky-100 via-gray-50 to-white py-20">
+        <Container className="max-w-md mx-auto px-4">
+          <Card
+            shadow="lg"
+            radius="lg"
+            p="6"
+            className="text-center border border-gray-100"
+          >
+            <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Trophy className="w-10 h-10 text-white" />
+            </div>
+            <Title order={2} className="text-gray-800 text-xl font-bold mb-2">
+              答题完成！
+            </Title>
+            <Text className="text-gray-500 text-sm mb-6">
+              恭喜你完成本次答题
+            </Text>
+
+            <Card
+              shadow="sm"
+              radius="md"
+              p="4"
+              className="bg-gradient-to-r from-green-500 to-green-600 mb-6"
+            >
+              <Text className="text-white text-sm mb-1">本次得分</Text>
+              <div className="text-white text-5xl font-bold">
+                {score}
+                <span className="text-xl font-normal">/{questions.length}</span>
+              </div>
+              <Text className="text-white/80 text-sm mt-1">
+                正确率: {accuracy}%
+              </Text>
+            </Card>
+
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <Card
+                shadow="sm"
+                radius="md"
+                p="3"
+                className="border border-gray-100"
+              >
+                <Text className="text-gray-500 text-xs mb-1">总题数</Text>
+                <Text className="text-gray-800 text-lg font-semibold">
+                  {questions.length}
+                </Text>
+              </Card>
+              <Card
+                shadow="sm"
+                radius="md"
+                p="3"
+                className="border border-gray-100"
+              >
+                <Text className="text-gray-500 text-xs mb-1">正确</Text>
+                <Text className="text-green-600 text-lg font-semibold">
+                  {score}
+                </Text>
+              </Card>
+              <Card
+                shadow="sm"
+                radius="md"
+                p="3"
+                className="border border-gray-100"
+              >
+                <Text className="text-gray-500 text-xs mb-1">错误</Text>
+                <Text className="text-red-600 text-lg font-semibold">
+                  {questions.length - score}
+                </Text>
+              </Card>
+            </div>
+
+            <Button
+              onClick={handleBackToHome}
+              className="w-full"
+              color="green"
+              radius="md"
+              leftSection={<Home className="w-4 h-4" />}
+            >
+              返回首页
+            </Button>
+          </Card>
+        </Container>
+      </Box>
+    );
+  }
+
+  const currentQuestion = questions[currentIndex];
+
   return (
-    <Box className="min-h-screen bg-gray-50 pb-20">
-      <Box className="bg-gradient-to-r from-green-500 to-green-600 px-4 pt-10 pb-4">
+    <Box className="min-h-screen bg-gradient-to-b from-sky-100 via-gray-50 to-white pb-20">
+      <Box className="px-4 pt-10 pb-4">
         <Title
           order={3}
-          className="text-white text-center text-lg font-semibold"
+          className="text-gray-800 text-center text-lg font-semibold"
         >
           答题练习
         </Title>
         <Box className="flex items-center justify-center gap-4 mt-2">
-          <Badge variant="light" color="white" size="sm">
-            第 {currentIndex + 1}/10 题
+          <Badge variant="light" color="green" size="sm">
+            第 {currentIndex + 1}/{questions.length} 题
           </Badge>
-          <Badge variant="light" color="white" size="sm">
+          <Badge variant="light" color="blue" size="sm">
             得分: {score}
           </Badge>
         </Box>
@@ -83,26 +262,27 @@ export default function QuizPage() {
               单选题
             </Badge>
             <Badge color="blue" variant="light" size="sm">
-              难度: 中等
+              难度: {'★'.repeat(currentQuestion.difficulty)}
+              {'☆'.repeat(3 - currentQuestion.difficulty)}
             </Badge>
           </div>
           <Title
             order={4}
             className="text-gray-800 mb-4 text-base font-semibold"
           >
-            {question.question}
+            {currentQuestion.title}
           </Title>
 
           <div className="space-y-2.5">
-            {question.options.map((option) => {
+            {currentQuestion.options.map((option) => {
               let optionClass =
                 'border-gray-200 hover:border-green-300 hover:bg-green-50';
               if (showResult) {
-                if (option.label === question.answer) {
+                if (option.label === currentQuestion.answer) {
                   optionClass = 'border-green-500 bg-green-50';
                 } else if (
                   option.label === selectedOption &&
-                  option.label !== question.answer
+                  option.label !== currentQuestion.answer
                 ) {
                   optionClass = 'border-red-500 bg-red-50';
                 }
@@ -119,11 +299,11 @@ export default function QuizPage() {
                 >
                   <div
                     className={`w-7 h-7 rounded-full flex items-center justify-center font-medium ${
-                      showResult && option.label === question.answer
+                      showResult && option.label === currentQuestion.answer
                         ? 'bg-green-500 text-white'
                         : showResult &&
                             option.label === selectedOption &&
-                            option.label !== question.answer
+                            option.label !== currentQuestion.answer
                           ? 'bg-red-500 text-white'
                           : selectedOption === option.label
                             ? 'bg-green-500 text-white'
@@ -134,23 +314,23 @@ export default function QuizPage() {
                   </div>
                   <Text
                     className={`flex-1 text-sm ${
-                      showResult && option.label === question.answer
+                      showResult && option.label === currentQuestion.answer
                         ? 'text-green-700'
                         : showResult &&
                             option.label === selectedOption &&
-                            option.label !== question.answer
+                            option.label !== currentQuestion.answer
                           ? 'text-red-700'
                           : 'text-gray-700'
                     }`}
                   >
-                    {option.text}
+                    {option.content}
                   </Text>
-                  {showResult && option.label === question.answer && (
+                  {showResult && option.label === currentQuestion.answer && (
                     <CheckCircle className="w-4 h-4 text-green-500" />
                   )}
                   {showResult &&
                     option.label === selectedOption &&
-                    option.label !== question.answer && (
+                    option.label !== currentQuestion.answer && (
                       <XCircle className="w-4 h-4 text-red-500" />
                     )}
                 </button>
@@ -159,7 +339,7 @@ export default function QuizPage() {
           </div>
         </Card>
 
-        {showResult && (
+        {showResult && currentQuestion.analysis && (
           <Card
             shadow="sm"
             radius="md"
@@ -173,7 +353,7 @@ export default function QuizPage() {
               </Title>
             </Box>
             <Text className="text-gray-600 text-sm leading-relaxed">
-              {question.analysis}
+              {currentQuestion.analysis}
             </Text>
           </Card>
         )}
@@ -190,7 +370,7 @@ export default function QuizPage() {
             >
               提交答案
             </Button>
-          ) : (
+          ) : currentIndex < questions.length - 1 ? (
             <Button
               onClick={handleNext}
               className="flex-1"
@@ -199,6 +379,15 @@ export default function QuizPage() {
               rightSection={<ArrowRight className="w-4 h-4" />}
             >
               下一题
+            </Button>
+          ) : (
+            <Button
+              onClick={handleNext}
+              className="flex-1"
+              color="green"
+              radius="md"
+            >
+              完成答题
             </Button>
           )}
         </Box>
@@ -213,7 +402,7 @@ export default function QuizPage() {
             答题进度
           </Title>
           <Progress
-            value={((currentIndex + 1) / 10) * 100}
+            value={((currentIndex + 1) / questions.length) * 100}
             color="green"
             size="sm"
           />

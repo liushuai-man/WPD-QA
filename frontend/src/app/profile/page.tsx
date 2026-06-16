@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Card,
@@ -26,6 +26,7 @@ import {
   Info,
   MessageCircle,
 } from 'lucide-react';
+import { quizApi } from '@/services';
 
 const menuItems = [
   { id: 'history', icon: Clock, label: '历史记录', badge: '6' },
@@ -37,17 +38,41 @@ const menuItems = [
   { id: 'help', icon: HelpCircle, label: '意见反馈' },
 ];
 
-const stats = [
-  { label: '问答次数', value: '32', icon: MessageCircle },
-  { label: '答题数', value: '128', icon: FileText },
-  { label: '正确率', value: '86%', icon: BarChart3 },
-  { label: '收藏数', value: '12', icon: Heart },
-];
-
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [nickname, setNickname] = useState('麦田守护者');
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState([
+    { label: '问答次数', value: '0', icon: MessageCircle },
+    { label: '答题数', value: '0', icon: FileText },
+    { label: '正确率', value: '0%', icon: BarChart3 },
+    { label: '错题数', value: '0', icon: Heart },
+  ]);
   const router = useRouter();
+
+  useEffect(() => {
+    fetchStatistics();
+  }, []);
+
+  const fetchStatistics = async () => {
+    setLoading(true);
+    try {
+      const response = await quizApi.getStatistics();
+      if (response.code === 200 && response.data) {
+        const { totalQuestions, correctCount, wrongCount, accuracy } = response.data;
+        setStats([
+          { label: '题库总量', value: String(totalQuestions), icon: FileText },
+          { label: '答题数', value: String(correctCount + wrongCount), icon: MessageCircle },
+          { label: '正确率', value: `${accuracy}%`, icon: BarChart3 },
+          { label: '错题数', value: String(wrongCount), icon: Heart },
+        ]);
+      }
+    } catch (err) {
+      console.error('获取统计数据失败:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleMenuClick = (id: string) => {
     if (id === 'history') router.push('/history');

@@ -5,7 +5,7 @@ export const chatService = {
   async sendMessage(content: string, conversationId?: string) {
     const response = await request.post<
       ApiResponse<{ conversationId: string; message: Message }>
-    >('/api/chat/send', {
+    >('/chat/send', {
       content,
       conversationId,
     });
@@ -13,7 +13,7 @@ export const chatService = {
   },
 
   async getConversations(page = 1, limit = 10) {
-    const response = await request.get<
+    return await request.get<
       ApiResponse<{
         items: Conversation[];
         total: number;
@@ -21,23 +21,21 @@ export const chatService = {
         limit: number;
         totalPages: number;
       }>
-    >('/api/chat/conversations', {
+    >('/chat/conversations', {
       params: { page, limit },
     });
-    return response;
+    
   },
 
   async getConversation(id: string) {
-    const response = await request.get<
+    return await request.get<
       ApiResponse<Conversation & { messages: Message[] }>
-    >(`/api/chat/conversations/${id}`);
-    return response;
+    >(`/chat/conversations/${id}`);
   },
 
   async deleteConversation(id: string) {
-    const response = await request.delete<ApiResponse>(
-      `/api/chat/conversations/${id}`
+    return await request.delete<ApiResponse>(
+      `/chat/conversations/${id}`
     );
-    return response;
   },
 };

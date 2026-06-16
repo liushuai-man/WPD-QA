@@ -132,3 +132,166 @@ export const getUserQuizRecords = async (userId: string) => {
   }));
   return { success: true, records: formattedRecords };
 };
+
+export const getQuestions = async (page: number, limit: number) => {
+  const skip = (page - 1) * limit;
+  const questions = await prisma.question.findMany({
+    where: { isDeleted: false },
+    skip,
+    take: limit,
+    include: { category: true },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  const total = await prisma.question.count({ where: { isDeleted: false } });
+
+  const formattedQuestions = questions.map((q) => ({
+    id: Number(q.id),
+    title: q.title,
+    options: JSON.parse(q.options as string),
+    answer: q.answer,
+    analysis: q.analysis,
+    difficulty: q.difficulty,
+    categoryId: q.categoryId ? Number(q.categoryId) : null,
+    categoryName: q.category?.name || null,
+    createdAt: q.createdAt.toISOString(),
+  }));
+
+  return { list: formattedQuestions, total };
+};
+
+export const submitAnswer = async (
+  userId: bigint,
+  questionId: number,
+  answer: string
+) => {
+  const question = await prisma.question.findUnique({
+    where: { id: BigInt(questionId), isDeleted: false },
+  });
+
+  if (!question) {
+    throw new Error('题目不存在');
+  }
+
+  const isCorrect = answer === question.answer;
+
+  const record = await prisma.quizRecord.create({
+    data: {
+      userId,
+      questionId: BigInt(questionId),
+      userAnswer: answer,
+      isCorrect,
+    },
+  });
+
+  if (isCorrect) {
+    await prisma.userStatistics.upsert({
+      where: { userId },
+      update: {
+        quizCount: { increment: 1 },
+        correctCount: { increment: 1 },
+      },
+      create: {
+        userId,
+        quizCount: 1,
+        correctCount: 1,
+      },
+    });
+  } else {
+    await prisma.userStatistics.upsert({
+      where: { userId },
+      update: {
+        quizCount: { increment: 1 },
+      },
+      create: {
+        userId,
+        quizCount: 1,
+        correctCount: 0,
+      },
+    });
+  }
+
+  return {
+    isCorrect,
+    record: {
+      id: Number(record.id),
+      userId: Number(record.userId),
+      questionId: Number(record.questionId),
+      userAnswer: record.userAnswer,
+      isCorrect: record.isCorrect,
+      createdAt: record.createdAt.toISOString(),
+    },
+  };
+};
+
+export const getWrongQuestions = async (
+  userId: bigint,
+  page: number,
+  limit: number
+) => {
+  const skip = (page - 1) * limit;
+
+  const records = await prisma.quizRecord.findMany({
+    where: {
+      userId,
+      isCorrect: false,
+      isDeleted: false,
+    },
+    skip,
+    take: limit,
+    include: {
+      question: {
+        include: { category: true },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  const total = await prisma.quizRecord.count({
+    where: { userId, isCorrect: false, isDeleted: false },
+  });
+
+  const wrongQuestions = records.map((record) => ({
+    id: Number(record.question.id),
+    title: record.question.title,
+    options: JSON.parse(record.question.options as string),
+    answer: record.question.answer,
+    analysis: record.question.analysis,
+    difficulty: record.question.difficulty,
+    categoryId: record.question.categoryId
+      ? Number(record.question.categoryId)
+      : null,
+    categoryName: record.question.category?.name || null,
+    userAnswer: record.userAnswer || '',
+    reviewed: false,
+    createdAt: record.createdAt.toISOString(),
+  }));
+
+  return { list: wrongQuestions, total };
+};
+
+export const getQuizStatistics = async (userId: bigint) => {
+  const statistics = await prisma.userStatistics.findUnique({
+    where: { userId },
+  });
+
+  const totalQuestions = await prisma.question.count({
+    where: { isDeleted: false },
+  });
+
+  const wrongCount = await prisma.quizRecord.count({
+    where: { userId, isCorrect: false, isDeleted: false },
+  });
+
+  const correctCount = statistics?.correctCount || 0;
+  const quizCount = statistics?.quizCount || 0;
+  const accuracy =
+    quizCount > 0 ? Math.round((correctCount / quizCount) * 100) : 0;
+
+  return {
+    totalQuestions,
+    correctCount,
+    wrongCount,
+    accuracy,
+  };
+};

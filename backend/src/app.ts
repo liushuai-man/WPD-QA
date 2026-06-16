@@ -4,11 +4,15 @@ import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import { PrismaClient } from '@prisma/client';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/index';
 import chatRoutes from './routes/chat';
 import adminRoutes from './routes/admin';
+import quizRoutes from './routes/quiz';
 import { getRedisClient, closeRedis } from './utils/redis';
+
+const prisma = new PrismaClient();
 
 // 加载环境变量
 dotenv.config();
@@ -39,6 +43,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api', userRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/quiz', quizRoutes);
 
 // 404 处理
 app.use((_req: Request, res: Response) => {
@@ -56,7 +61,10 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 // 启动服务
 const startServer = async () => {
   try {
-    // 初始化 Redis 连接（不阻塞主服务启动）
+    console.log('🔄 Initializing database connection...');
+    await prisma.$connect();
+    console.log('✅ Database connection established successfully');
+
     console.log('🔄 Initializing Redis connection...');
     getRedisClient()
       .then(() => {
@@ -69,7 +77,6 @@ const startServer = async () => {
         );
       });
 
-    // 启动 HTTP 服务器
     app.listen(PORT, () => {
       console.log(`🚀 Server is running on http://localhost:${PORT}`);
     });
