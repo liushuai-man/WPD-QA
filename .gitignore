@@ -21,3 +21,5 @@ packages/db/prisma/migrations
 /admin/.next
 /backend/node_modules
 /backend/.next
+
+
