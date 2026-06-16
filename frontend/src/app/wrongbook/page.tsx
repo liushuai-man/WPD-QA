@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Card,
   Box,
@@ -30,11 +31,16 @@ interface WrongQuestion extends Question {
 }
 
 export default function WrongBookPage() {
+  const router = useRouter();
   const [wrongQuestions, setWrongQuestions] = useState<WrongQuestion[]>([]);
   const [activeCategory, setActiveCategory] = useState('全部');
   const [reviewedFilter, setReviewedFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
+
+  const handleStartReview = () => {
+    router.push('/quiz?mode=review');
+  };
 
   useEffect(() => {
     fetchWrongQuestions();
@@ -147,6 +153,18 @@ export default function WrongBookPage() {
           </Box>
         </Card>
 
+        {wrongQuestions.length > 0 && (
+          <Button
+            className="w-full mb-3"
+            color="green"
+            radius="md"
+            onClick={handleStartReview}
+            rightSection={<ArrowRight className="w-4 h-4" />}
+          >
+            开始复习 ({wrongQuestions.length}题)
+          </Button>
+        )}
+
         <Card
           shadow="sm"
           radius="md"
@@ -257,12 +275,6 @@ export default function WrongBookPage() {
               </>
             ))}
           </Card>
-        )}
-
-        {filteredQuestions.length > 0 && (
-          <Button className="w-full mt-3" color="green" radius="md">
-            开始复习 ({filteredQuestions.length}题)
-          </Button>
         )}
       </Container>
 

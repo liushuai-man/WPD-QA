@@ -29,4 +29,8 @@ export const quizApi = {
   }>> => {
     return await request.get('/quiz/statistics');
   },
+
+  removeFromWrongBook: async (questionId: number): Promise<ApiResponse<void>> => {
+    return await request.delete(`/quiz/wrong/${questionId}`);
+  },
 };

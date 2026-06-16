@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Card,
   Box,
@@ -26,10 +26,14 @@ import type { Question, QuizRecord } from '@/types/index';
 
 interface QuizQuestion extends Question {
   options: { label: string; content: string }[];
+  userAnswer?: string;
 }
 
 export default function QuizPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isReviewMode = searchParams.get('mode') === 'review';
+
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -38,6 +42,7 @@ export default function QuizPage() {
   const [loading, setLoading] = useState(true);
   const [wrongAnswers, setWrongAnswers] = useState<QuizRecord[]>([]);
   const [isFinished, setIsFinished] = useState(false);
+  const [correctIds, setCorrectIds] = useState<number[]>([]);
 
   useEffect(() => {
     fetchQuestions();
@@ -46,7 +51,12 @@ export default function QuizPage() {
   const fetchQuestions = async () => {
     setLoading(true);
     try {
-      const response = await quizApi.getQuestions(1, 10);
+      let response;
+      if (isReviewMode) {
+        response = await quizApi.getWrongQuestions(1, 50);
+      } else {
+        response = await quizApi.getQuestions(1, 10);
+      }
       if (response.code === 200 && response.data) {
         setQuestions(response.data.list);
       }
@@ -72,6 +82,9 @@ export default function QuizPage() {
 
     if (isCorrect) {
       setScore(score + 1);
+      if (isReviewMode) {
+        setCorrectIds([...correctIds, Number(currentQuestion.id)]);
+      }
     } else {
       setWrongAnswers([
         ...wrongAnswers,
@@ -85,6 +98,9 @@ export default function QuizPage() {
 
     try {
       await quizApi.submitAnswer(Number(currentQuestion.id), selectedOption);
+      if (isCorrect && isReviewMode) {
+        await quizApi.removeFromWrongBook(Number(currentQuestion.id));
+      }
     } catch (err) {
       console.error('提交答案失败:', err);
     }

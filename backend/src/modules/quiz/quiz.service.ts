@@ -295,3 +295,17 @@ export const getQuizStatistics = async (userId: bigint) => {
     accuracy,
   };
 };
+
+export const removeFromWrongBook = async (userId: bigint, questionId: number) => {
+  await prisma.quizRecord.updateMany({
+    where: {
+      userId,
+      questionId: BigInt(questionId),
+      isCorrect: false,
+      isDeleted: false,
+    },
+    data: {
+      isDeleted: true,
+    },
+  });
+};

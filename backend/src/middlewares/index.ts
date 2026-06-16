@@ -25,14 +25,14 @@ export const authMiddleware = async (
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: '未授权，请先登录' });
+      return res.status(401).json({ code: 401, message: '未授权，请先登录' });
     }
 
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
 
     if (!decoded) {
-      return res.status(401).json({ error: 'token无效或已过期' });
+      return res.status(401).json({ code: 401, message: 'token无效或已过期' });
     }
 
     const user = await prisma.user.findUnique({
@@ -46,7 +46,7 @@ export const authMiddleware = async (
     });
 
     if (!user) {
-      return res.status(401).json({ error: '用户不存在' });
+      return res.status(401).json({ code: 401, message: '用户不存在' });
     }
 
     req.user = {
@@ -57,7 +57,7 @@ export const authMiddleware = async (
     };
     next();
   } catch (error) {
-    return res.status(401).json({ error: '认证失败' });
+    return res.status(401).json({ code: 401, message: '认证失败' });
   }
 };
 

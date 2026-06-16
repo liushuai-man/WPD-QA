@@ -9,6 +9,7 @@ import {
   submitAnswer as submitAnswerService,
   getWrongQuestions as getWrongQuestionsService,
   getQuizStatistics as getQuizStatisticsService,
+  removeFromWrongBook as removeFromWrongBookService,
 } from './quiz.service';
 
 export const handleCreateQuiz = async (req: Request, res: Response) => {
@@ -127,6 +128,19 @@ export const getQuizStatistics = async (req: Request, res: Response) => {
     }
     const result = await getQuizStatisticsService(BigInt(req.user.id));
     res.json({ code: 200, data: result, message: 'success' });
+  } catch (error) {
+    res.status(400).json({ code: 400, message: (error as Error).message });
+  }
+};
+
+export const removeFromWrongBook = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ code: 401, message: '未授权' });
+    }
+    const questionId = parseInt(req.params.questionId);
+    await removeFromWrongBookService(BigInt(req.user.id), questionId);
+    res.json({ code: 200, message: 'success' });
   } catch (error) {
     res.status(400).json({ code: 400, message: (error as Error).message });
   }

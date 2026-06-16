@@ -14,7 +14,18 @@ const request: AxiosInstance = axios.create({
 
 request.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const accessToken = useAuthStore.getState().accessToken;
+    let accessToken = useAuthStore.getState().accessToken;
+    if (!accessToken) {
+      const storedAuth = localStorage.getItem('wpd-auth');
+      if (storedAuth) {
+        try {
+          const parsed = JSON.parse(storedAuth);
+          accessToken = parsed.accessToken;
+        } catch {
+          console.error('Failed to parse stored auth');
+        }
+      }
+    }
     if (accessToken) {
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${accessToken}`;
