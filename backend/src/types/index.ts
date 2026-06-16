@@ -1,9 +1,8 @@
 // 类型定义
 export interface ApiResponse<T = unknown> {
-  success: boolean;
+  code: number;
   data?: T;
-  error?: string;
-  message?: string;
+  message: string;
 }
 
 export interface PaginationParams {
@@ -18,3 +17,5 @@ export interface PaginatedResponse<T> {
   limit: number;
   totalPages: number;
 }
+
+

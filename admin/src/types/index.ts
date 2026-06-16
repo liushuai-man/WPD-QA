@@ -1,17 +1,26 @@
+export interface Admin {
+  id: number;
+  username: string;
+  role: string;
+}
+
 export interface User {
   id: number;
   email: string;
-  nickname?: string;
-  avatar?: string;
+  nickname: string | null;
+  avatar: string | null;
   chatCount: number;
   quizCount: number;
   createdAt: string;
 }
 
-export interface Admin {
+export interface Knowledge {
   id: number;
-  username: string;
-  role: string;
+  title: string;
+  source: string;
+  categoryName: string;
+  content: string;
+  createdAt: string;
 }
 
 export interface Question {
@@ -19,21 +28,21 @@ export interface Question {
   title: string;
   options: Array<{ label: string; content: string }>;
   answer: string;
-  analysis?: string;
+  analysis: string | null;
   difficulty: number;
-  categoryId?: number;
+  categoryId: number | null;
+  categoryName: string | null;
   createdAt: string;
 }
 
-export interface KnowledgeDocument {
+export interface Conversation {
   id: number;
   title: string;
-  source?: string;
-  categoryId?: number;
-  fileName?: string;
-  fileType?: string;
-  fileSize?: number;
+  userId: number;
+  userEmail: string;
+  messageCount: number;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface Statistics {
@@ -48,15 +57,15 @@ export interface Statistics {
   ragHitRate: number;
 }
 
-export interface ApiResponse<T = any> {
-  code: number;
-  message: string;
-  data: T;
-}
-
-export interface PaginatedResponse<T> {
+export interface Pagination<T> {
   list: T[];
   total: number;
   page: number;
   limit: number;
+}
+
+export interface ApiResponse<T> {
+  code: number;
+  message: string;
+  data: T;
 }

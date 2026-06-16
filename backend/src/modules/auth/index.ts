@@ -1,2 +1,2 @@
-// 认证模块
-export {};
+export * from './auth.controller';
+export * from './auth.service';

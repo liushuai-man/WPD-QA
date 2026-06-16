@@ -1,2 +1,2 @@
-// 知识库模块
-export {};
+export * from './knowledge.controller';
+export * from './knowledge.service';

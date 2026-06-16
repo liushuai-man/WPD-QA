@@ -1,2 +1,2 @@
-// 用户模块
-export {};
+export * from './user.controller';
+export * from './user.service';

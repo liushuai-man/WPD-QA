@@ -1,2 +1,2 @@
-// 管理模块
-export {};
+export * from './admin.controller';
+export * from './admin.service';
