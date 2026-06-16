@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Button,
@@ -17,58 +17,15 @@ import { authApi } from '@/services/auth';
 import { useAuthStore } from '@/store/useUserStore';
 import { validateEmail, validatePassword } from '@/lib/utils';
 
-interface TurnstileInstance {
-  reset(): void;
-  remove(): void;
-}
-
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [turnstileToken, setTurnstileToken] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const turnstileRef = useRef<HTMLDivElement>(null);
-  const turnstileInstanceRef = useRef<TurnstileInstance | null>(null);
   const login = useAuthStore((state) => state.login);
-
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      if (
-        turnstileRef.current &&
-        typeof (window as any).Turnstile !== 'undefined'
-      ) {
-        turnstileInstanceRef.current = (window as any).Turnstile.render(
-          turnstileRef.current,
-          {
-            sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '',
-            callback: (token: string) => {
-              setTurnstileToken(token);
-              setError('');
-            },
-            'error-callback': () => {
-              setError('人机验证失败，请重试');
-            },
-          }
-        );
-      }
-    };
-    document.head.appendChild(script);
-
-    return () => {
-      document.head.removeChild(script);
-      if (turnstileInstanceRef.current) {
-        turnstileInstanceRef.current.remove();
-      }
-    };
-  }, []);
 
   const handleValidateEmail = (email: string) => {
     const result = validateEmail(email);
@@ -92,18 +49,9 @@ export default function LoginPage() {
       return;
     }
 
-    if (process.env.NEXT_PUBLIC_NODE_ENV !== 'development' && !turnstileToken) {
-      setError('请完成人机验证');
-      return;
-    }
-
     setIsSubmitting(true);
     try {
-      const result = await authApi.loginWithPassword(
-        email,
-        password,
-        turnstileToken
-      );
+      const result = await authApi.loginWithPassword(email, password);
       if (result.code === 200 && result.data) {
         login(
           {
@@ -121,10 +69,6 @@ export default function LoginPage() {
       }
     } catch (err: any) {
       setError(err.message || '登录失败');
-      setTurnstileToken('');
-      if (turnstileInstanceRef.current) {
-        turnstileInstanceRef.current.reset();
-      }
     } finally {
       setIsSubmitting(false);
     }
@@ -194,8 +138,6 @@ export default function LoginPage() {
             error={passwordError}
             withAsterisk
           />
-
-          <Box className="pt-2" ref={turnstileRef} />
 
           <Button
             type="submit"

@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client';
-import axios from 'axios';
 import {
   generateToken,
   generateRefreshToken,
@@ -25,21 +24,6 @@ import {
 } from '../../utils/validation';
 
 const prisma = new PrismaClient();
-
-const verifyTurnstile = async (token: string): Promise<boolean> => {
-  try {
-    const response = await axios.post(
-      'https://challenges.cloudflare.com/turnstile/v0/siteverify',
-      {
-        secret: process.env.TURNSTILE_SECRET_KEY,
-        response: token,
-      }
-    );
-    return response.data.success;
-  } catch {
-    return false;
-  }
-};
 
 export const sendRegisterCode = async (email: string) => {
   const validation = await validateEmail(email);
@@ -185,7 +169,7 @@ export const loginWithCode = async (email: string, code: string) => {
 export const loginWithPassword = async (
   email: string,
   password: string,
-  turnstileToken: string
+  _turnstileToken?: string
 ) => {
   const emailValidation = await validateEmail(email);
   if (emailValidation.error) {
@@ -195,13 +179,6 @@ export const loginWithPassword = async (
   const passwordValidation = await validatePassword(password);
   if (passwordValidation.error) {
     throw new Error(passwordValidation.error);
-  }
-
-  if (process.env.NODE_ENV !== 'development') {
-    const isVerified = await verifyTurnstile(turnstileToken);
-    if (!isVerified) {
-      throw new Error('人机验证失败');
-    }
   }
 
   const user = await prisma.user.findUnique({ where: { email } });

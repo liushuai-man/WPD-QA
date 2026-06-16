@@ -27,6 +27,7 @@ import {
   MessageCircle,
 } from 'lucide-react';
 import { quizApi } from '@/services';
+import { useAuthStore } from '@/store/useUserStore';
 
 const menuItems = [
   { id: 'history', icon: Clock, label: '历史记录', badge: '6' },
@@ -40,7 +41,7 @@ const menuItems = [
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
-  const [nickname, setNickname] = useState('麦田守护者');
+  const [editingNickname, setEditingNickname] = useState('');
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState([
     { label: '问答次数', value: '0', icon: MessageCircle },
@@ -48,11 +49,16 @@ export default function ProfilePage() {
     { label: '正确率', value: '0%', icon: BarChart3 },
     { label: '错题数', value: '0', icon: Heart },
   ]);
+  
   const router = useRouter();
+  const { user, logout } = useAuthStore();
 
   useEffect(() => {
+    if (user) {
+      setEditingNickname(user.nickname || '');
+    }
     fetchStatistics();
-  }, []);
+  }, [user]);
 
   const fetchStatistics = async () => {
     setLoading(true);
@@ -74,12 +80,35 @@ export default function ProfilePage() {
     }
   };
 
+  const handleSaveNickname = () => {
+    if (editingNickname.trim()) {
+      useAuthStore.getState().updateUser({ nickname: editingNickname.trim() });
+    }
+    setIsEditing(false);
+  };
+
   const handleMenuClick = (id: string) => {
     if (id === 'history') router.push('/history');
     else if (id === 'quiz') router.push('/quiz');
     else if (id === 'wrongbook') router.push('/wrongbook');
     else if (id === 'favorites') router.push('/favorites');
   };
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
+
+  if (!user) {
+    return (
+      <Box className="min-h-screen bg-gradient-to-b from-sky-100 via-gray-50 to-white flex items-center justify-center">
+        <Card shadow="md" radius="md" p="8" className="text-center">
+          <Text className="text-gray-600 mb-4">请先登录</Text>
+          <Button onClick={() => router.push('/login')}>立即登录</Button>
+        </Card>
+      </Box>
+    );
+  }
 
   return (
     <Box className="min-h-screen bg-gradient-to-b from-sky-100 via-gray-50 to-white pb-20">
@@ -95,6 +124,7 @@ export default function ProfilePage() {
               size="lg"
               radius="xl"
               className="border-3 border-green-100 bg-green-100"
+              src={user.avatar || undefined}
             >
               <User className="w-8 h-8 text-green-500" />
             </Avatar>
@@ -102,31 +132,35 @@ export default function ProfilePage() {
               {isEditing ? (
                 <input
                   type="text"
-                  value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
+                  value={editingNickname}
+                  onChange={(e) => setEditingNickname(e.target.value)}
                   className="w-full px-3 py-2 border-2 border-green-300 rounded-md focus:outline-none focus:border-green-500 text-sm"
                   autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveNickname();
+                    if (e.key === 'Escape') setIsEditing(false);
+                  }}
                 />
               ) : (
                 <Title
                   order={4}
                   className="text-gray-800 font-semibold text-base"
                 >
-                  {nickname}
+                  {user.nickname || user.email.split('@')[0]}
                 </Title>
               )}
               <Box className="flex items-center gap-2 mt-1">
                 <Badge size="xs" color="green" variant="light">
                   农户
                 </Badge>
-                <Text className="text-xs text-gray-500">ID: 123456789</Text>
+                <Text className="text-xs text-gray-500">ID: {user.id}</Text>
               </Box>
             </div>
             <Button
               size="xs"
               variant="outline"
               radius="md"
-              onClick={() => setIsEditing(!isEditing)}
+              onClick={isEditing ? handleSaveNickname : () => setIsEditing(true)}
               leftSection={<Edit2 className="w-4 h-4" />}
             >
               {isEditing ? '保存' : '编辑'}
@@ -202,7 +236,7 @@ export default function ProfilePage() {
           variant="outline"
           fullWidth
           radius="md"
-          onClick={() => router.push('/login')}
+          onClick={handleLogout}
           leftSection={<LogOut className="w-4 h-4" />}
         >
           退出登录

@@ -31,13 +31,11 @@ export const authApi = {
 
   loginWithPassword: async (
     email: string,
-    password: string,
-    turnstileToken: string
+    password: string
   ): Promise<ApiResponse<LoginResponse>> => {
     return request.post('/auth/login-password', {
       email,
       password,
-      turnstileToken,
     });
   },
 

@@ -113,8 +113,8 @@ export const handleLoginWithCode = async (req: Request, res: Response) => {
 
 export const handleLoginWithPassword = async (req: Request, res: Response) => {
   try {
-    const { email, password, turnstileToken } = req.body;
-    const result = await loginWithPassword(email, password, turnstileToken);
+    const { email, password } = req.body;
+    const result = await loginWithPassword(email, password);
     const response: ApiResponse<{
       user: { id: string; email: string; nickname: string; avatar: string | null };
       accessToken: string;
