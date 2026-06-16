@@ -16,6 +16,7 @@ import {
   getConversations,
   deleteConversation,
   getStatistics,
+  updateAdminPassword,
 } from './admin.service';
 
 // Re-export login handler from adminAuth
@@ -224,5 +225,27 @@ export const handleGetStatistics = async (_req: Request, res: Response) => {
   } catch (error) {
     console.error('Get statistics error:', error);
     res.status(500).json({ code: 500, message: '获取统计数据失败' });
+  }
+};
+
+// ==================== 管理员账户管理 ====================
+
+export const handleUpdateAdminPassword = async (req: Request, res: Response) => {
+  try {
+    if (!req.admin) {
+      return res.status(401).json({ code: 401, message: '未授权' });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ code: 400, message: '当前密码和新密码不能为空' });
+    }
+
+    await updateAdminPassword(parseInt(req.admin.id), currentPassword, newPassword);
+    res.json({ code: 200, message: '密码修改成功' });
+  } catch (error) {
+    console.error('Update admin password error:', error);
+    res.status(400).json({ code: 400, message: (error as Error).message });
   }
 };

@@ -52,31 +52,34 @@ export const getConversationById = async (id: string) => {
   };
 };
 
-export const getUserConversations = async (userId: string) => {
-  const conversations = await prisma.conversation.findMany({
-    where: { userId: BigInt(userId) },
-    orderBy: { createdAt: 'desc' },
-    include: { messages: { take: 1, orderBy: { createdAt: 'desc' } } },
-  });
+export const getUserConversations = async (userId: string, page = 1, limit = 10) => {
+  const skip = (page - 1) * limit;
+  
+  const [conversations, total] = await Promise.all([
+    prisma.conversation.findMany({
+      where: { userId: BigInt(userId) },
+      orderBy: { updatedAt: 'desc' },
+      include: { messages: { take: 1, orderBy: { createdAt: 'desc' } } },
+      skip,
+      take: limit,
+    }),
+    prisma.conversation.count({ where: { userId: BigInt(userId) } }),
+  ]);
 
   const formattedConversations = conversations.map((conv) => ({
     id: String(conv.id),
     userId: String(conv.userId),
-    title: conv.title,
+    title: conv.title || (conv.messages[0]?.content?.slice(0, 30) + '...') || '未命名会话',
     createdAt: conv.createdAt,
     updatedAt: conv.updatedAt,
-    messages: conv.messages.map((msg) => ({
-      id: String(msg.id),
-      conversationId: String(msg.conversationId),
-      role: msg.role,
-      content: msg.content,
-      createdAt: msg.createdAt,
-    })),
   }));
 
   return {
-    success: true,
-    conversations: formattedConversations,
+    items: formattedConversations,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
   };
 };
 

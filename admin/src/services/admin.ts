@@ -191,4 +191,14 @@ export const statisticsApi = {
   },
 };
 
+export const profileApi = {
+  updatePassword: async (currentPassword: string, newPassword: string) => {
+    const response = await api.put<ApiResponse<null>>('/admin/profile/password', {
+      currentPassword,
+      newPassword,
+    });
+    return response.data;
+  },
+};
+
 export default api;

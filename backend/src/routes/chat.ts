@@ -4,6 +4,7 @@ import {
   handleGetUserConversations,
   handleGetConversationById,
   handleSendMessage,
+  handleDeleteConversation,
 } from '../modules/chat';
 import { authMiddleware, optionalAuthMiddleware } from '../middlewares';
 
@@ -13,5 +14,6 @@ router.post('/', optionalAuthMiddleware, handleSendMessage);
 router.post('/conversations', authMiddleware, handleCreateConversation);
 router.get('/conversations', authMiddleware, handleGetUserConversations);
 router.get('/conversations/:id', authMiddleware, handleGetConversationById);
+router.delete('/conversations/:id', authMiddleware, handleDeleteConversation);
 
 export default router;

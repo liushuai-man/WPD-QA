@@ -8,7 +8,10 @@ import {
   Shield,
   Server,
   Save,
+  User,
+  Lock,
 } from 'lucide-react';
+import { profileApi } from '@/services/admin';
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState({
@@ -21,10 +24,48 @@ export default function SettingsPage() {
   });
 
   const [saved, setSaved] = useState(false);
+  const [passwordSaved, setPasswordSaved] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
 
   const handleSave = () => {
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handlePasswordChange = (field: string, value: string) => {
+    setPasswordForm({ ...passwordForm, [field]: value });
+    setPasswordError('');
+  };
+
+  const handleUpdatePassword = async () => {
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      setPasswordError('请填写所有字段');
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError('两次输入的新密码不一致');
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      setPasswordError('新密码长度不能少于6位');
+      return;
+    }
+
+    try {
+      await profileApi.updatePassword(passwordForm.currentPassword, passwordForm.newPassword);
+      setPasswordSaved(true);
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setTimeout(() => setPasswordSaved(false), 2000);
+    } catch (error: any) {
+      setPasswordError(error.response?.data?.message || '修改密码失败');
+    }
   };
 
   return (
@@ -204,6 +245,76 @@ export default function SettingsPage() {
                 <span className="text-success font-medium">可用</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div className="bg-surface rounded-xl p-6 border border-border">
+          <h3 className="text-lg font-semibold text-text mb-4 flex items-center gap-2">
+            <User className="w-5 h-5 text-primary" />
+            管理员账户
+          </h3>
+
+          {passwordSaved && (
+            <div className="bg-success/10 border border-success/20 text-success px-4 py-3 rounded-lg flex items-center gap-2 mb-4">
+              <Shield className="w-5 h-5" />
+              密码修改成功
+            </div>
+          )}
+
+          {passwordError && (
+            <div className="bg-error/10 border border-error/20 text-error px-4 py-3 rounded-lg flex items-center gap-2 mb-4">
+              <Lock className="w-5 h-5" />
+              {passwordError}
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-text mb-2">
+                当前密码
+              </label>
+              <input
+                type="password"
+                value={passwordForm.currentPassword}
+                onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
+                className="w-full px-4 py-2 bg-gray-50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                placeholder="请输入当前密码"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text mb-2">
+                新密码
+              </label>
+              <input
+                type="password"
+                value={passwordForm.newPassword}
+                onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
+                className="w-full px-4 py-2 bg-gray-50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                placeholder="请输入新密码（至少6位）"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text mb-2">
+                确认新密码
+              </label>
+              <input
+                type="password"
+                value={passwordForm.confirmPassword}
+                onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
+                className="w-full px-4 py-2 bg-gray-50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                placeholder="请再次输入新密码"
+              />
+            </div>
+
+            <button
+              onClick={handleUpdatePassword}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors"
+            >
+              <Lock className="w-4 h-4" />
+              修改密码
+            </button>
           </div>
         </div>
       </div>

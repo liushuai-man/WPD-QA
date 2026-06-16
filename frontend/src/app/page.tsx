@@ -7,12 +7,10 @@ import {
   Bug,
   BookOpen,
   Camera,
-  Heart,
   Clock,
   ArrowRight,
   Wheat,
   Shield,
-  Leaf,
   HelpCircle,
   FileText,
 } from 'lucide-react';
@@ -24,8 +22,6 @@ const features = [
   { id: 'knowledge', icon: BookOpen, label: '知识库', color: 'bg-purple-500' },
   { id: 'history', icon: Clock, label: '历史会话', color: 'bg-cyan-500' },
   { id: 'wrongbook', icon: FileText, label: '错题本', color: 'bg-red-500' },
-  { id: 'farm', icon: Leaf, label: '农技知识', color: 'bg-teal-500' },
-  { id: 'favorites', icon: Heart, label: '我的收藏', color: 'bg-pink-500' },
 ];
 
 export default function HomePage() {
@@ -100,19 +96,19 @@ export default function HomePage() {
 
       <Container className="max-w-md mx-auto px-4 space-y-4">
         <Card shadow="sm" radius="md" p="4" className="border border-gray-100">
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-3 gap-4">
             {features.map((feature) => {
               const Icon = feature.icon;
               return (
                 <button
                   key={feature.id}
                   onClick={() => handleFeatureClick(feature.id)}
-                  className="flex flex-col items-center gap-1.5"
+                  className="flex flex-col items-center gap-2"
                 >
                   <div
-                    className={`w-12 h-12 ${feature.color} rounded-xl flex items-center justify-center`}
+                    className={`w-14 h-14 ${feature.color} rounded-xl flex items-center justify-center`}
                   >
-                    <Icon className="w-5.5 h-5.5 text-white" />
+                    <Icon className="w-6 h-6 text-white" />
                   </div>
                   <Text className="text-xs text-gray-600">{feature.label}</Text>
                 </button>

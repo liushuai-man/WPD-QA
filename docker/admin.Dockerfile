@@ -3,18 +3,18 @@ FROM node:20-alpine AS base
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY apps/admin/package.json ./apps/admin/
+COPY admin/package.json ./admin/
 
 RUN npm install -g pnpm
 RUN pnpm install --frozen-lockfile
 
 COPY . .
 
-RUN pnpm build:admin
+RUN cd admin && pnpm build
 
 FROM nginx:alpine
 
-COPY --from=base /app/apps/admin/.next /usr/share/nginx/html
+COPY --from=base /app/admin/.next /usr/share/nginx/html
 COPY nginx/admin.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80

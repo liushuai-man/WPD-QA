@@ -1,4 +1,5 @@
 import { PrismaClient, Prisma } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -414,6 +415,48 @@ export const deleteConversation = async (id: number): Promise<void> => {
     where: { id: BigInt(id) },
     data: { isDeleted: true },
   });
+};
+
+// ==================== 管理员账户管理 ====================
+
+export const updateAdminPassword = async (
+  adminId: number,
+  currentPassword: string,
+  newPassword: string
+): Promise<boolean> => {
+  const admin = await prisma.admin.findUnique({
+    where: { id: BigInt(adminId) },
+  });
+
+  if (!admin) {
+    throw new Error('管理员不存在');
+  }
+
+  const isPlainPassword = admin.passwordHash.length < 60;
+  let isCurrentPasswordValid = false;
+
+  if (isPlainPassword) {
+    isCurrentPasswordValid = admin.passwordHash === currentPassword;
+  } else {
+    isCurrentPasswordValid = await bcrypt.compare(currentPassword, admin.passwordHash);
+  }
+
+  if (!isCurrentPasswordValid) {
+    throw new Error('当前密码不正确');
+  }
+
+  if (newPassword.length < 6) {
+    throw new Error('新密码长度不能少于6位');
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await prisma.admin.update({
+    where: { id: BigInt(adminId) },
+    data: { passwordHash: hashedPassword },
+  });
+
+  return true;
 };
 
 // ==================== 统计 ====================

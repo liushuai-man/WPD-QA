@@ -16,6 +16,7 @@ import {
   handleGetConversations,
   handleDeleteConversation,
   handleGetStatistics,
+  handleUpdateAdminPassword,
 } from '../modules/admin/admin.controller';
 
 const router: RouterType = Router();
@@ -48,5 +49,8 @@ router.delete(
   adminAuthMiddleware,
   handleDeleteConversation
 );
+
+// Admin account management
+router.put('/profile/password', adminAuthMiddleware, handleUpdateAdminPassword);
 
 export default router;

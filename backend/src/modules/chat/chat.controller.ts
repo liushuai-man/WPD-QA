@@ -34,7 +34,9 @@ export const handleGetUserConversations = async (req: Request, res: Response) =>
     if (!req.user) {
       return res.status(401).json({ code: 401, message: '未授权' });
     }
-    const result = await getUserConversations(req.user.id);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const result = await getUserConversations(req.user.id, page, limit);
     res.json({ code: 200, data: result, message: '查询成功' });
   } catch (error) {
     res.status(400).json({ code: 400, message: (error as Error).message });

@@ -17,26 +17,20 @@ import {
   Edit2,
   ChevronRight,
   Settings,
-  HelpCircle,
-  LogOut,
   Clock,
-  Heart,
   BarChart3,
   FileText,
-  Info,
   MessageCircle,
+  XCircle,
 } from 'lucide-react';
 import { quizApi } from '@/services';
 import { useAuthStore } from '@/store/useUserStore';
 
 const menuItems = [
   { id: 'history', icon: Clock, label: '历史记录', badge: '6' },
-  { id: 'favorites', icon: Heart, label: '我的收藏', badge: '12' },
   { id: 'quiz', icon: BarChart3, label: '学习统计' },
   { id: 'wrongbook', icon: FileText, label: '错题本', badge: '4' },
   { id: 'settings', icon: Settings, label: '设置' },
-  { id: 'about', icon: Info, label: '关于我们' },
-  { id: 'help', icon: HelpCircle, label: '意见反馈' },
 ];
 
 export default function ProfilePage() {
@@ -47,11 +41,11 @@ export default function ProfilePage() {
     { label: '问答次数', value: '0', icon: MessageCircle },
     { label: '答题数', value: '0', icon: FileText },
     { label: '正确率', value: '0%', icon: BarChart3 },
-    { label: '错题数', value: '0', icon: Heart },
+    { label: '错题数', value: '0', icon: XCircle },
   ]);
   
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
 
   useEffect(() => {
     if (user) {
@@ -70,7 +64,7 @@ export default function ProfilePage() {
           { label: '题库总量', value: String(totalQuestions), icon: FileText },
           { label: '答题数', value: String(correctCount + wrongCount), icon: MessageCircle },
           { label: '正确率', value: `${accuracy}%`, icon: BarChart3 },
-          { label: '错题数', value: String(wrongCount), icon: Heart },
+          { label: '错题数', value: String(wrongCount), icon: XCircle },
         ]);
       }
     } catch (err) {
@@ -91,13 +85,10 @@ export default function ProfilePage() {
     if (id === 'history') router.push('/history');
     else if (id === 'quiz') router.push('/quiz');
     else if (id === 'wrongbook') router.push('/wrongbook');
-    else if (id === 'favorites') router.push('/favorites');
+    else if (id === 'settings') router.push('/settings');
   };
 
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
-  };
+  
 
   if (!user) {
     return (
@@ -230,17 +221,6 @@ export default function ProfilePage() {
             );
           })}
         </Card>
-
-        <Button
-          color="red"
-          variant="outline"
-          fullWidth
-          radius="md"
-          onClick={handleLogout}
-          leftSection={<LogOut className="w-4 h-4" />}
-        >
-          退出登录
-        </Button>
       </Container>
     </Box>
   );
