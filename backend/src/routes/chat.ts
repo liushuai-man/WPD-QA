@@ -5,13 +5,13 @@ import {
   handleGetConversationById,
   handleSendMessage,
 } from '../modules/chat';
-import { authMiddleware } from '../middlewares';
+import { authMiddleware, optionalAuthMiddleware } from '../middlewares';
 
 const router: RouterType = Router();
 
-router.post('/api/chat', authMiddleware, handleSendMessage);
-router.post('/api/conversations', authMiddleware, handleCreateConversation);
-router.get('/api/conversations', authMiddleware, handleGetUserConversations);
-router.get('/api/conversations/:id', authMiddleware, handleGetConversationById);
+router.post('/', optionalAuthMiddleware, handleSendMessage);
+router.post('/conversations', authMiddleware, handleCreateConversation);
+router.get('/conversations', authMiddleware, handleGetUserConversations);
+router.get('/conversations/:id', authMiddleware, handleGetConversationById);
 
 export default router;

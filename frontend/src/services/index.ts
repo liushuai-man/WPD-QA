@@ -1,2 +1,4 @@
-export { quizApi } from './quiz';
-export { chatService } from './chat';
+export * from './quiz';
+export * from './chat';
+export * from './user';
+export * from './auth';

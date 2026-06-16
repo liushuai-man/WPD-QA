@@ -2,17 +2,18 @@ import axios, {
   AxiosInstance,
   InternalAxiosRequestConfig,
   AxiosResponse,
+  AxiosPromise,
 } from 'axios';
 import { useAuthStore } from '../store/useUserStore';
 
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api`;
 
-const request: AxiosInstance = axios.create({
+const axiosInstance: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
 });
 
-request.interceptors.request.use(
+axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     let accessToken = useAuthStore.getState().accessToken;
     if (!accessToken) {
@@ -37,7 +38,7 @@ request.interceptors.request.use(
   }
 );
 
-request.interceptors.response.use(
+axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
     return response.data;
   },
@@ -48,5 +49,15 @@ request.interceptors.response.use(
     return Promise.reject(error.response?.data || error);
   }
 );
+
+interface CustomAxiosInstance extends Omit<AxiosInstance, 'get' | 'post' | 'put' | 'delete' | 'patch'> {
+  get<T = any>(url: string, config?: Partial<InternalAxiosRequestConfig>): Promise<T>;
+  post<T = any>(url: string, data?: any, config?: Partial<InternalAxiosRequestConfig>): Promise<T>;
+  put<T = any>(url: string, data?: any, config?: Partial<InternalAxiosRequestConfig>): Promise<T>;
+  delete<T = any>(url: string, config?: Partial<InternalAxiosRequestConfig>): Promise<T>;
+  patch<T = any>(url: string, data?: any, config?: Partial<InternalAxiosRequestConfig>): Promise<T>;
+}
+
+const request = axiosInstance as CustomAxiosInstance;
 
 export default request;

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Card,
   Box,
@@ -10,57 +11,152 @@ import {
   Container,
   TextInput,
 } from '@mantine/core';
-import { Send, Mic, Image, Bot, User, Clock } from 'lucide-react';
+import { Send, Mic, Image, Bot, User, Clock, ArrowLeft } from 'lucide-react';
+import { chatApi } from '@/services/index';
+import type { Message } from '@/types';
 
-const mockMessages = [
-  {
-    id: 1,
-    type: 'bot',
-    content: '您好！我是小麦病虫害智能助手。请问有什么可以帮助您的吗？',
-    time: '刚刚',
-  },
-  {
-    id: 2,
-    type: 'user',
-    content: '小麦叶发黄是什么原因？',
-    time: '刚刚',
-  },
-  {
-    id: 3,
-    type: 'bot',
-    content:
-      '小麦叶发黄可能由多种原因引起，主要包括：\n\n1. 营养缺乏：\n   - 缺氮：叶片均匀发黄，从老叶开始\n   - 缺镁：叶脉间发黄，叶脉仍绿\n   - 缺铁：新叶发黄，叶脉绿色\n\n2. 病害（如纹枯病）：\n   - 叶片出现黄色病斑\n   - 后期可能干枯\n\n3. 环境因素：\n   - 干旱或涝害\n   - 温度不适\n\n建议您观察具体症状，以便更准确判断。',
-    time: '刚刚',
-  },
-];
+interface ChatMessage extends Omit<Message, 'conversationId'> {
+  type: 'user' | 'bot';
+  conversationId?: string;
+}
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState(mockMessages);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const conversationId = searchParams.get('id');
+
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
+  useEffect(() => {
+    if (conversationId) {
+      loadConversation(conversationId);
+    } else {
+      setMessages([
+        {
+          id: '1',
+          type: 'bot',
+          content: '您好！我是小麦病虫害智能助手。请问有什么可以帮助您的吗？',
+          createdAt: new Date().toISOString(),
+          role: 'assistant',
+        },
+      ]);
+    }
+  }, [conversationId]);
 
-    const newMessage = {
-      id: messages.length + 1,
+  const loadConversation = async (id: string) => {
+    try {
+      const response = await chatApi.getConversation(id);
+      if (response.code === 200 && response.data) {
+        const chatMessages: ChatMessage[] = response.data.messages.map(
+          (msg) => ({
+            ...msg,
+            type: msg.role === 'user' ? 'user' : 'bot',
+          })
+        );
+        setMessages(chatMessages);
+      }
+    } catch (error) {
+      console.error('加载对话失败:', error);
+      setMessages([
+        {
+          id: '1',
+          type: 'bot',
+          content: '您好！我是小麦病虫害智能助手。请问有什么可以帮助您的吗？',
+          createdAt: new Date().toISOString(),
+          role: 'assistant',
+        },
+      ]);
+    }
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!inputValue.trim() || isSending) return;
+
+    setIsSending(true);
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
       type: 'user',
       content: inputValue,
-      time: '刚刚',
+      createdAt: new Date().toISOString(),
+      role: 'user',
     };
 
-    setMessages([...messages, newMessage]);
+    setMessages([...messages, userMessage]);
     setInputValue('');
+
+    try {
+      const response = await chatApi.sendMessage(
+        inputValue,
+        conversationId ?? undefined
+      );
+      if (response.code === 200 && response.data) {
+        const botMessage: ChatMessage = {
+          ...response.data.message,
+          type: 'bot',
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      }
+    } catch (error) {
+      console.error('发送消息失败:', error);
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        type: 'bot',
+        content: '抱歉，我暂时无法回答您的问题，请稍后再试。',
+        createdAt: new Date().toISOString(),
+        role: 'assistant',
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return '刚刚';
+    if (minutes < 60) return `${minutes}分钟前`;
+    if (hours < 24) return `${hours}小时前`;
+    if (days < 7) return `${days}天前`;
+    return date.toLocaleDateString('zh-CN');
   };
 
   return (
     <Box className="min-h-screen bg-gray-50 pb-24">
       <Box className="bg-gradient-to-r from-green-500 to-green-600 px-4 pt-10 pb-4">
-        <Title
-          order={3}
-          className="text-white text-center text-lg font-semibold"
-        >
-          AI问答
-        </Title>
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white"
+            onClick={() => router.push('/')}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <Title
+            order={3}
+            className="text-white text-center text-lg font-semibold"
+          >
+            AI问答
+          </Title>
+          <div className="w-8" />
+        </div>
       </Box>
 
       <Container className="max-w-md mx-auto px-4 py-3">
@@ -89,11 +185,13 @@ export default function ChatPage() {
                 }`}
               >
                 <Card
-                  className={`p-3 ${
-                    message.type === 'user'
-                      ? 'bg-green-500 text-white'
-                      : 'bg-white border border-gray-100'
-                  }`}
+                  className="p-3"
+                  style={{
+                    backgroundColor:
+                      message.type === 'user' ? '#22c55e' : '#ffffff',
+                    border:
+                      message.type === 'user' ? 'none' : '1px solid #f3f4f6',
+                  }}
                   radius="md"
                   shadow="sm"
                 >
@@ -107,11 +205,12 @@ export default function ChatPage() {
                 </Card>
                 <Text className="text-xs text-gray-400 mt-1 flex items-center gap-1 justify-end">
                   <Clock className="w-3 h-3" />
-                  {message.time}
+                  {formatTime(message.createdAt)}
                 </Text>
               </div>
             </div>
           ))}
+          <div ref={messagesEndRef} />
         </div>
       </Container>
 
@@ -133,8 +232,18 @@ export default function ChatPage() {
             <Button variant="ghost" size="icon" radius="md">
               <Mic className="w-5 h-5 text-gray-400" />
             </Button>
-            <Button onClick={handleSend} color="green" size="icon" radius="md">
-              <Send className="w-4 h-4" />
+            <Button
+              onClick={handleSend}
+              disabled={isSending}
+              color="green"
+              size="icon"
+              radius="md"
+            >
+              {isSending ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
             </Button>
           </div>
         </Container>

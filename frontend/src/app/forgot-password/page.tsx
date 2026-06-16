@@ -15,7 +15,7 @@ import {
   Grid,
 } from '@mantine/core';
 import { Mail, Lock, ArrowRight, Send } from 'lucide-react';
-import { authApi } from '@/api/auth';
+import { authApi } from '@/services/auth';
 import {
   validateEmail,
   validateCode,

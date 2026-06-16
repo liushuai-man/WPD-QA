@@ -13,7 +13,7 @@ import {
   Title,
 } from '@mantine/core';
 import { Mail, Lock, ArrowRight, Home } from 'lucide-react';
-import { authApi } from '@/api/auth';
+import { authApi } from '@/services/auth';
 import { useAuthStore } from '@/store/useUserStore';
 import { validateEmail, validatePassword } from '@/lib/utils';
 
