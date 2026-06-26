@@ -1,6 +1,42 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '../../lib/prisma';
 
-const prisma = new PrismaClient();
+const CHUNK_SIZE = 500;
+
+const splitContentIntoChunks = (
+  content: string,
+  title: string
+): { title: string; content: string }[] => {
+  const chunks: { title: string; content: string }[] = [];
+  const paragraphs = content.split(/\n\n/).filter((p) => p.trim().length > 0);
+
+  let currentChunk = '';
+  let chunkIndex = 0;
+
+  for (const paragraph of paragraphs) {
+    if (
+      currentChunk.length + paragraph.length > CHUNK_SIZE &&
+      currentChunk.length > 0
+    ) {
+      chunks.push({
+        title: `${title} - 第${chunkIndex + 1}部分`,
+        content: currentChunk.trim(),
+      });
+      currentChunk = paragraph + '\n\n';
+      chunkIndex++;
+    } else {
+      currentChunk += paragraph + '\n\n';
+    }
+  }
+
+  if (currentChunk.trim().length > 0) {
+    chunks.push({
+      title: `${title} - 第${chunkIndex + 1}部分`,
+      content: currentChunk.trim(),
+    });
+  }
+
+  return chunks;
+};
 
 export const createKnowledgeDocument = async (
   title: string,
@@ -11,6 +47,8 @@ export const createKnowledgeDocument = async (
   fileType?: string,
   fileSize?: bigint
 ) => {
+  const chunks = splitContentIntoChunks(content, title);
+
   const knowledge = await prisma.knowledgeDocument.create({
     data: {
       title,
@@ -20,6 +58,16 @@ export const createKnowledgeDocument = async (
       fileName,
       fileType,
       fileSize,
+      chunks: {
+        create: chunks.map((chunk, index) => ({
+          chunkIndex: index,
+          title: chunk.title,
+          content: chunk.content,
+        })),
+      },
+    },
+    include: {
+      chunks: true,
     },
   });
 
@@ -34,6 +82,7 @@ export const createKnowledgeDocument = async (
       fileName: knowledge.fileName,
       fileType: knowledge.fileType,
       createdAt: knowledge.createdAt,
+      chunkCount: knowledge.chunks.length,
     },
   };
 };
@@ -93,9 +142,29 @@ export const updateKnowledgeDocument = async (
   content: string,
   source?: string
 ) => {
+  const chunks = splitContentIntoChunks(content, title);
+
+  await prisma.knowledgeChunk.deleteMany({
+    where: { documentId: BigInt(id) },
+  });
+
   const knowledge = await prisma.knowledgeDocument.update({
     where: { id: BigInt(id) },
-    data: { title, content, source },
+    data: {
+      title,
+      content,
+      source,
+      chunks: {
+        create: chunks.map((chunk, index) => ({
+          chunkIndex: index,
+          title: chunk.title,
+          content: chunk.content,
+        })),
+      },
+    },
+    include: {
+      chunks: true,
+    },
   });
   return {
     success: true,
@@ -105,6 +174,7 @@ export const updateKnowledgeDocument = async (
       content: knowledge.content,
       source: knowledge.source,
       createdAt: knowledge.createdAt,
+      chunkCount: knowledge.chunks.length,
     },
   };
 };

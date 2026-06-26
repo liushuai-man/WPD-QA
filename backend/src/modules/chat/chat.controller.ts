@@ -6,6 +6,12 @@ import {
   createMessage,
   deleteConversation,
 } from './chat.service';
+import {
+  chatWithAgent,
+  generateConversationTitle,
+  type AgentResponse,
+} from '../../ai/agent';
+import type { ChatMessage } from '../../ai/client';
 
 export const handleCreateConversation = async (req: Request, res: Response) => {
   try {
@@ -19,7 +25,10 @@ export const handleCreateConversation = async (req: Request, res: Response) => {
   }
 };
 
-export const handleGetConversationById = async (req: Request, res: Response) => {
+export const handleGetConversationById = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const { id } = req.params;
     const result = await getConversationById(id);
@@ -29,7 +38,10 @@ export const handleGetConversationById = async (req: Request, res: Response) => 
   }
 };
 
-export const handleGetUserConversations = async (req: Request, res: Response) => {
+export const handleGetUserConversations = async (
+  req: Request,
+  res: Response
+) => {
   try {
     if (!req.user) {
       return res.status(401).json({ code: 401, message: '未授权' });
@@ -55,30 +67,69 @@ export const handleCreateMessage = async (req: Request, res: Response) => {
 
 export const handleSendMessage = async (req: Request, res: Response) => {
   try {
-    const { content } = req.body;
+    const { content, conversationId } = req.body;
     const userId = req.user?.id;
 
     if (!content || typeof content !== 'string') {
       return res.status(400).json({ code: 400, message: '内容不能为空' });
     }
 
-    let responseContent = '';
-    const keywords = ['小麦', '病虫害', '发黄', '病害', '虫害', '防治'];
-    
-    if (keywords.some((kw) => content.includes(kw))) {
-      responseContent = `您问的是关于"${content}"的问题。小麦病虫害防治需要综合考虑多种因素，包括品种选择、田间管理、病虫害监测和及时防治等方面。建议您：\n\n1. 及时识别病虫害类型\n2. 选择合适的防治方法\n3. 注意用药安全\n\n如需更详细的解答，请提供更多信息。`;
-    } else {
-      responseContent = `您问的是"${content}"。我是小麦病虫害智能助手，主要专注于小麦病虫害相关的问题解答。如果您有关于小麦种植、病虫害识别与防治等方面的问题，欢迎随时提问！`;
+    let history: ChatMessage[] = [];
+    let convId = conversationId;
+
+    if (convId) {
+      const conversation = await getConversationById(convId);
+      const messages = conversation.conversation?.messages || [];
+      history = messages.slice(-10).map((msg: any) => ({
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content,
+      }));
+    }
+
+    let agentResponse: AgentResponse;
+    try {
+      agentResponse = await chatWithAgent(content, history);
+    } catch (aiError) {
+      console.warn('AI API failed, using fallback response:', aiError);
+      agentResponse = {
+        content: `您问的是"${content}"。我是小麦病虫害智能助手，主要专注于小麦病虫害相关的问题解答。如果您有关于小麦种植、病虫害识别与防治等方面的问题，欢迎随时提问！`,
+        promptTokens: 0,
+        completionTokens: 0,
+      };
+    }
+
+    if (userId && !convId) {
+      const title = await generateConversationTitle(content);
+      const newConversation = await createConversation(userId, title);
+      convId = newConversation.conversation?.id || '';
+    }
+
+    let savedMessage: any = null;
+    if (convId && userId) {
+      await createMessage(
+        convId,
+        'user',
+        content,
+        agentResponse.promptTokens,
+        0
+      );
+      savedMessage = await createMessage(
+        convId,
+        'assistant',
+        agentResponse.content,
+        agentResponse.promptTokens,
+        agentResponse.completionTokens
+      );
     }
 
     res.json({
       code: 200,
       data: {
-        conversationId: '',
+        conversationId: convId,
         message: {
-          id: Date.now().toString(),
-          conversationId: '',
-          content: responseContent,
+          id: savedMessage?.message?.id || Date.now().toString(),
+          conversationId: convId,
+          content: agentResponse.content,
           role: 'assistant',
           createdAt: new Date().toISOString(),
         },
@@ -86,7 +137,13 @@ export const handleSendMessage = async (req: Request, res: Response) => {
       message: 'success',
     });
   } catch (error) {
-    res.status(400).json({ code: 400, message: (error as Error).message });
+    console.error('Chat error:', error);
+    res
+      .status(500)
+      .json({
+        code: 500,
+        message: (error as Error).message || '聊天服务异常，请稍后重试',
+      });
   }
 };
 

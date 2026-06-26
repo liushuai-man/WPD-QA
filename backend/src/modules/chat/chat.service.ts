@@ -1,6 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../../lib/prisma';
 
 export const createConversation = async (userId: string, title?: string) => {
   const conversation = await prisma.conversation.create({

@@ -4,15 +4,13 @@ import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
-import { PrismaClient } from '@prisma/client';
+import prisma from './lib/prisma';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/index';
 import chatRoutes from './routes/chat';
 import adminRoutes from './routes/admin';
 import quizRoutes from './routes/quiz';
 import { getRedisClient, closeRedis } from './utils/redis';
-
-const prisma = new PrismaClient();
 
 // 加载环境变量
 dotenv.config();
